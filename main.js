@@ -46,7 +46,7 @@ document.getElementById('calendarForm')?.addEventListener('submit', function(e) 
     e.preventDefault();
     let taskId = document.getElementById('calendarTaskId').value;
     let newDate = document.getElementById('calendarDate').value;
-    fetch('update_date.php', {
+    fetch('update_task_date.php', {
         method: 'POST',
         headers: {'Content-Type':'application/x-www-form-urlencoded'},
         body: `task_id=${taskId}&new_date=${newDate}`

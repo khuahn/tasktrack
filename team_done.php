@@ -7,11 +7,17 @@ include 'db.php';
 
 $user_id = $_SESSION['user_id'];
 // Get team id
-$res = $conn->query('SELECT team_id FROM users WHERE id=' . $user_id);
+$stmt = $conn->prepare('SELECT team_id FROM users WHERE id = ?');
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
 $row = $res->fetch_assoc();
 $team_id = intval($row['team_id']);
 // List completed tasks for team
-$res = $conn->query('SELECT t.*, u.username FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE t.priority="DONE" AND u.team_id=' . $team_id . ' ORDER BY t.completed_at DESC');
+$stmt = $conn->prepare('SELECT t.*, u.username FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE t.priority="DONE" AND u.team_id = ? ORDER BY t.completed_at DESC');
+$stmt->bind_param('i', $team_id);
+$stmt->execute();
+$res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
 ?>
 <div class="container">

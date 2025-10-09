@@ -12,6 +12,7 @@ $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
+        require_csrf_post();
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         $role = $_POST['role'] ?? 'member';
@@ -31,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if ($action === 'edit' && $user_id) {
+        require_csrf_post();
         $role = $_POST['role'] ?? '';
         $team_id = intval($_POST['team_id'] ?? 0);
         $frozen = isset($_POST['frozen']) ? 1 : 0;
@@ -45,11 +47,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 if ($action === 'freeze' && $user_id) {
-    $conn->query('UPDATE users SET frozen=1 WHERE id=' . $user_id);
+    // Use prepared statement to avoid injection
+    $stmt = $conn->prepare('UPDATE users SET frozen=1 WHERE id=?');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->close();
     $message = 'User frozen.';
 }
 if ($action === 'delete' && $user_id) {
-    $conn->query('DELETE FROM users WHERE id=' . $user_id);
+    // Use prepared statement to avoid injection
+    $stmt = $conn->prepare('DELETE FROM users WHERE id=?');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $stmt->close();
     $message = 'User deleted.';
 }
 
@@ -71,6 +81,7 @@ $users = $res->fetch_all(MYSQLI_ASSOC);
         <div style="color:green; margin-bottom:1em;"><?php echo $message; ?></div>
     <?php endif; ?>
     <form method="post" action="?action=add" style="margin-bottom:2em;">
+        <?php echo csrf_input(); ?>
         <h3>Add User</h3>
         <input type="text" name="username" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
@@ -110,6 +121,7 @@ $users = $res->fetch_all(MYSQLI_ASSOC);
         $edit = $res->fetch_assoc();
     ?>
     <form method="post" action="?action=edit&id=<?php echo $user_id; ?>" style="margin-top:2em;">
+        <?php echo csrf_input(); ?>
         <h3>Edit User</h3>
         <select name="role">
             <option value="member" <?php if ($edit['role']==='member') echo 'selected'; ?>>Member</option>

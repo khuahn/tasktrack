@@ -23,6 +23,7 @@ $task_id = intval($_GET['id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
+        require_csrf_post();
         $name = trim($_POST['name'] ?? '');
         $link = trim($_POST['link'] ?? '');
         $priority = $_POST['priority'] ?? 'LOW';
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if ($action === 'edit' && $task_id) {
+        require_csrf_post();
         $name = trim($_POST['name'] ?? '');
         $link = trim($_POST['link'] ?? '');
         $priority = $_POST['priority'] ?? 'LOW';
@@ -56,11 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 if ($action === 'complete' && $task_id) {
-    $conn->query('UPDATE tasks SET priority="DONE", completed_at=NOW() WHERE id=' . $task_id);
+    $stmt = $conn->prepare('UPDATE tasks SET priority="DONE", completed_at=NOW() WHERE id=?');
+    $stmt->bind_param('i', $task_id);
+    $stmt->execute();
+    $stmt->close();
     $message = 'Task marked complete.';
 }
 if ($action === 'restore' && $task_id) {
-    $conn->query('UPDATE tasks SET priority="PEND", completed_at=NULL WHERE id=' . $task_id);
+    $stmt = $conn->prepare('UPDATE tasks SET priority="PEND", completed_at=NULL WHERE id=?');
+    $stmt->bind_param('i', $task_id);
+    $stmt->execute();
+    $stmt->close();
     $message = 'Task restored.';
 }
 
@@ -93,6 +101,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
         <div style="color:green; margin-bottom:1em;"><?php echo $message; ?></div>
     <?php endif; ?>
     <form method="post" action="?action=add" style="margin-bottom:2em;">
+        <?php echo csrf_input(); ?>
         <h3>Add Task</h3>
         <input type="text" name="name" placeholder="Task Name" required>
         <input type="text" name="link" placeholder="Task Link">
@@ -138,6 +147,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
         $edit = $res->fetch_assoc();
     ?>
     <form method="post" action="?action=edit&id=<?php echo $task_id; ?>" style="margin-top:2em;">
+        <?php echo csrf_input(); ?>
         <h3>Edit Task</h3>
         <input type="text" name="name" value="<?php echo htmlspecialchars($edit['name']); ?>" required>
         <input type="text" name="link" value="<?php echo htmlspecialchars($edit['link']); ?>">

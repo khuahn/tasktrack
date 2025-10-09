@@ -12,6 +12,7 @@ $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
+        require_csrf_post();
         $name = trim($_POST['name'] ?? '');
         if ($name) {
             // Check if team name already exists
@@ -38,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($action === 'edit' && $team_id) {
+        require_csrf_post();
         $name = trim($_POST['name'] ?? '');
         if ($name) {
             // Check if team name already exists (excluding current team)
@@ -106,6 +108,7 @@ while ($row = $res->fetch_assoc()) {
 
     <!-- Add Team Form -->
     <form method="post" action="?action=add" style="margin-bottom: 2em; padding: 1em; background: #f5f5f5; border-radius: 4px;">
+        <?php echo csrf_input(); ?>
         <h3>Add New Team</h3>
         <input type="text" name="name" placeholder="Team Name" required style="padding: 0.5em; margin-right: 0.5em;">
         <button type="submit" style="background: #28a745; color: white; border: none; padding: 0.5em 1em; border-radius: 4px;">
@@ -148,6 +151,7 @@ while ($row = $res->fetch_assoc()) {
             <tr>
                 <td colspan="4" style="padding: 1em; background: #f9f9f9;">
                     <form method="post" action="?action=edit&id=<?php echo $team['id']; ?>" style="display: flex; align-items: center; gap: 0.5em;">
+                        <?php echo csrf_input(); ?>
                         <input type="text" name="name" value="<?php echo htmlspecialchars($team['name']); ?>" required style="padding: 0.5em; flex: 1;">
                         <button type="submit" style="background: #008080; color: white; border: none; padding: 0.5em 1em; border-radius: 4px;">
                             <i class="fa fa-save"></i> Save

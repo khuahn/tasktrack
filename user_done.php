@@ -7,7 +7,10 @@ include 'db.php';
 
 $user_id = $_SESSION['user_id'];
 // List completed tasks
-$res = $conn->query("SELECT * FROM tasks WHERE assigned_to=$user_id AND priority='DONE' ORDER BY completed_at DESC");
+$stmt = $conn->prepare('SELECT * FROM tasks WHERE assigned_to = ? AND priority = "DONE" ORDER BY completed_at DESC');
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
 ?>
 <div class="container">

@@ -9,7 +9,10 @@ $user_id = $_SESSION['user_id'];
 $role = get_user_role();
 
 // List tasks
-$res = $conn->query("SELECT * FROM tasks WHERE assigned_to=$user_id AND priority!='DONE' ORDER BY updated_at DESC");
+$stmt = $conn->prepare('SELECT * FROM tasks WHERE assigned_to = ? AND priority != "DONE" ORDER BY updated_at DESC');
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
 
 ?>
@@ -345,7 +348,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
                         <td>
                             <span class="priority-badge <?php echo $priorityClass; ?>">
                                 <i class="fa <?php echo $priorityIcon; ?>"></i>
-                                <?php echo $t['priority']; ?>
+                                <?php echo htmlspecialchars($t['priority']); ?>
                             </span>
                         </td>
                         <td>

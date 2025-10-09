@@ -6,7 +6,9 @@ include 'head.php';
 include 'db.php';
 
 // List all completed tasks
-$res = $conn->query('SELECT t.*, u.username FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE t.priority="DONE" ORDER BY t.completed_at DESC');
+$stmt = $conn->prepare('SELECT t.*, u.username FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE t.priority="DONE" ORDER BY t.completed_at DESC');
+$stmt->execute();
+$res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
 ?>
 <div class="container">
