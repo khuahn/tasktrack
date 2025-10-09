@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="TaskTrack · A lightweight, modern task tracker that runs entirely in your browser." />
+    <meta name="theme-color" content="#0b0f17" />
+    <title>TaskTrack</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <img class="logo" alt="" src="./favicon.svg" width="28" height="28" />
+          <span class="brand-name">TaskTrack</span>
+        </div>
+        <button id="theme-toggle" class="icon-button" aria-label="Toggle theme" title="Toggle theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
+            <path d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1Zm6.364 2.636a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM21 11a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1ZM6.757 6.343A1 1 0 0 1 8.17 7.757l-.707.707A1 1 0 0 1 6.05 7.05l.707-.707ZM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm-1 2v-1a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0ZM4 11a1 1 0 1 1 0 2H3a1 1 0 0 1 0-2h1Zm2.343 8.243a1 1 0 0 1 0-1.414l.707-.707a1 1 0 1 1 1.414 1.414l-.707.707a1 1 0 0 1-1.414 0Zm11.314 0-1.414-1.414a1 1 0 0 1 1.414-1.414l1.414 1.414a1 1 0 0 1-1.414 1.414Z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Focus on what matters</h1>
+        <p class="subtitle">Lightweight task tracking that just works — no accounts, no clutter.</p>
+        <form id="task-form" class="task-form" autocomplete="off">
+          <input id="task-input" type="text" placeholder="Add a new task…" aria-label="Task title" required />
+          <button type="submit" class="button primary">Add</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="list-controls">
+          <div class="filters" role="tablist" aria-label="Filters">
+            <button class="chip is-active" data-filter="all" role="tab" aria-selected="true">All</button>
+            <button class="chip" data-filter="active" role="tab" aria-selected="false">Active</button>
+            <button class="chip" data-filter="completed" role="tab" aria-selected="false">Completed</button>
+          </div>
+          <button id="clear-completed" class="button text">Clear completed</button>
+        </div>
+
+        <ul id="task-list" class="task-list" aria-live="polite" aria-label="Tasks"></ul>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <span id="task-count">0 tasks</span>
+      <a class="footer-link" href="https://" target="_blank" rel="noopener">v1</a>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+    <noscript><div class="noscript">Enable JavaScript to use TaskTrack.</div></noscript>
+  </body>
+</html>
