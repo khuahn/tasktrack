@@ -1,0 +1,347 @@
+/* ===== LAYOUT STYLES ===== */
+.main-container { 
+    max-width: 1400px; 
+    margin: var(--space-xl) auto; 
+    padding: 0 var(--space-md); 
+}
+
+/* ===== TABLE CONTAINER STYLES ===== */
+.task-table-container { 
+    background: var(--white); 
+    border-radius: var(--radius-lg); 
+    box-shadow: var(--shadow-sm); 
+    overflow: hidden; 
+}
+
+/* ===== TABLE STRUCTURE STYLES ===== */
+.task-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+.task-table th { 
+    background: var(--gray-200); 
+    color: var(--gray-700); 
+    padding: var(--space-md); 
+    text-align: left; 
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 2px solid var(--gray-300); 
+}
+.task-table td { 
+    padding: 0.5rem 1rem; /* Changed: 0.5rem top/bottom, 1rem left/right */
+    border-bottom: 1px solid var(--gray-200); 
+    font-size: 0.9rem; 
+    color: var(--gray-600); 
+    vertical-align: middle; /* Ensure content stays vertically centered */
+}
+.task-table tr:hover { 
+    background: var(--gray-50); 
+}
+.task-table tr:last-child td { 
+    border-bottom: none; 
+}
+
+/* ===== PRIORITY BADGE STYLES ===== */
+.priority-badge { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.4rem; 
+    padding: 0.3rem 0.7rem; 
+    border-radius: 12px; 
+    font-size: 0.8rem; 
+    font-weight: 500; 
+    border: 1px solid; 
+}
+/* Priority level colors */
+.priority-low { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+.priority-mid { background: #fef7cd; color: #854d0e; border-color: #fde68a; }
+.priority-high { background: #ffe4e6; color: #be123c; border-color: #fecdd3; }
+.priority-prio { background: #fef2f2; color: #dc2626; border-color: #fca5a5; font-weight: 600; }
+.priority-pend { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
+
+/* ===== NOTES COLUMN ICON STYLES ===== */
+.notes-icon {
+    color: var(--primary); /* Teal color */
+    font-size: 1.8rem; /* Bigger icon for Notes column */
+    transition: all 0.3s ease;
+}
+
+/* ===== TASK LINK STYLES ===== */
+.task-link { 
+    color: var(--primary); 
+    text-decoration: none; 
+    font-weight: 500; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    transition: all 0.3s ease; 
+    padding: 0.3rem 0.6rem; 
+    border-radius: var(--radius-md); 
+    position: relative;
+}
+
+.task-link:hover { 
+    color: var(--primary); /* Keep teal color on hover */
+    background: rgba(0, 128, 128, 0.1);
+    text-decoration: none;
+    transform: translateY(-2px); /* Move up on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-link .fa,
+.task-link .fas,
+.task-link .fa-solid,
+.task-link .fa-regular {
+    transition: transform 0.3s ease;
+}
+
+.task-link:hover .fa,
+.task-link:hover .fas,
+.task-link:hover .fa-solid,
+.task-link:hover .fa-regular {
+    transform: translateY(-1px); /* Slight icon movement */
+}
+
+/* ===== ACTION BUTTON STYLES ===== */
+.action-btn { 
+    background: none; 
+    border: none; 
+    color: var(--primary); /* Teal color by default */
+    cursor: pointer; 
+    padding: 0.5rem; /* Adjusted for the bigger icon */
+    border-radius: var(--radius-md); 
+    transition: all 0.3s ease; 
+    font-size: 0.9rem; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover { 
+    background: rgba(0, 128, 128, 0.1);
+    color: var(--primary); /* Keep teal color on hover */
+    transform: translateY(-2px); /* Move up on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn .fa,
+.action-btn .fas,
+.action-btn .fa-solid,
+.action-btn .fa-regular {
+    transition: transform 0.3s ease;
+}
+
+.action-btn:hover .fa,
+.action-btn:hover .fas,
+.action-btn:hover .fa-solid,
+.action-btn:hover .fa-regular {
+    transform: scale(1.1) translateY(-1px); /* Slight scale and movement */
+}
+
+/* ===== DATE INFORMATION STYLES ===== */
+.date-info { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    white-space: nowrap; 
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.date-info:hover {
+    transform: translateY(-1px);
+}
+
+.date-main { 
+    font-weight: 400; /* Normal weight - not bold */
+    font-size: 0.85rem; 
+    color: var(--gray-600); 
+    transition: all 0.3s ease;
+}
+
+.date-info:hover .date-main {
+    color: var(--primary); /* Slight color change on hover for better feedback */
+}
+
+/* ===== MODAL STYLES ===== */
+.modal { 
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    background: rgba(0,0,0,0.5); 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+.modal-content { 
+    background: var(--white); 
+    border-radius: var(--radius-lg); 
+    width: 90%; 
+    max-width: 900px; 
+    max-height: 80vh; 
+    overflow: hidden; 
+    box-shadow: var(--shadow-lg); 
+    display: flex; 
+    flex-direction: column; 
+}
+.modal-header { 
+    padding: 1.25rem 1.5rem; 
+    border-bottom: 1px solid var(--gray-300); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-shrink: 0; 
+}
+.modal-header h3 { 
+    margin: 0; 
+    font-size: 1.1rem; 
+    color: var(--gray-900); 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+}
+.modal-body { 
+    padding: 1.5rem; 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
+
+/* ===== NOTES STYLES ===== */
+.notes-container { 
+    flex: 1; 
+    overflow-y: auto; 
+    border: 1px solid var(--gray-300); 
+    border-radius: var(--radius-md); 
+    padding: var(--space-md); 
+    margin-bottom: var(--space-lg); 
+    background: var(--gray-50); 
+}
+.note-item { 
+    border-bottom: 1px solid var(--gray-300); 
+    padding: 0.8rem 0; 
+    font-size: 0.8rem; 
+    word-wrap: break-word; 
+}
+.note-item:last-child { 
+    border-bottom: none; 
+}
+.note-user { 
+    font-weight: 600; 
+    color: var(--primary); 
+    margin-bottom: 0.2rem; 
+    font-size: 0.85rem; 
+}
+.note-date { 
+    font-size: 0.7rem; 
+    color: var(--gray-600); 
+    margin-bottom: 0.3rem; 
+}
+.note-text { 
+    color: var(--gray-900); 
+    line-height: 1.4; 
+}
+
+/* ===== FORM STYLES ===== */
+.form-group { 
+    margin: 0 6px var(--space-md) 6px; 
+    flex-shrink: 0; 
+}
+.form-control { 
+    width: 100%; 
+    padding: 0.75rem; 
+    border: 1px solid var(--gray-300); 
+    border-radius: var(--radius-md); 
+    font-size: 0.85rem; 
+    resize: none; 
+    transition: border-color 0.2s ease; 
+    line-height: 1.4; 
+    height: 100px; 
+}
+.form-control:focus { 
+    outline: none; 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 2px rgba(0,128,128,0.1); 
+}
+
+/* ===== BUTTON STYLES ===== */
+.btn { 
+    padding: 0.6rem 1.25rem; 
+    border: none; 
+    border-radius: var(--radius-md); 
+    cursor: pointer; 
+    font-size: 0.85rem; 
+    font-weight: 500; 
+    transition: all 0.2s ease; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.4rem; 
+}
+.btn-primary { 
+    background: var(--primary); 
+    color: var(--white); 
+}
+.btn-primary:hover { 
+    background: var(--primary-dark); 
+    transform: translateY(-1px); 
+}
+.btn-secondary { 
+    background: var(--gray-600); 
+    color: var(--white); 
+}
+.btn-secondary:hover { 
+    background: var(--gray-700); 
+}
+.btn-group { 
+    display: flex; 
+    gap: 0.5rem; 
+    flex-shrink: 0; 
+    margin: 0 6px; 
+}
+
+/* ===== EMPTY STATE STYLES ===== */
+.empty-state { 
+    text-align: center; 
+    padding: var(--space-2xl); 
+    color: var(--gray-600); 
+}
+.empty-state i { 
+    font-size: 2.5rem; 
+    color: var(--gray-300); 
+    margin-bottom: var(--space-md); 
+}
+.empty-state h3 { 
+    margin: 0 0 0.5rem 0; 
+    font-size: 1.1rem; 
+}
+.empty-state p { 
+    margin: 0; 
+    font-size: 0.9rem; 
+}
+
+/* ===== ICON STYLES ===== */
+.task-table .fa, 
+.task-table .fas, 
+.task-table .fa-solid, 
+.task-table .fa-regular { 
+    color: var(--primary); 
+    transition: transform 0.2s ease; 
+}
+
+.task-table .action-btn:hover .fa,
+.task-table .action-btn:hover .fas,
+.task-table .action-btn:hover .fa-solid,
+.task-table .action-btn:hover .fa-regular,
+.task-link:hover .fa,
+.task-link:hover .fas,
+.task-link:hover .fa-solid,
+.task-link:hover .fa-regular { 
+    color: var(--primary); 
+    transform: translateY(-1px); 
+}
