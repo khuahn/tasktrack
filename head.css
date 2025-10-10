@@ -1,0 +1,220 @@
+/* ===== NAVBAR STYLES ===== */
+.navbar {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    padding: 0.8em 1.5em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    min-height: 60px;
+    box-shadow: var(--shadow-md);
+}
+
+.nav-welcome {
+    flex: 1;
+    font-size: 0.95em;
+    font-weight: 400;
+}
+
+.nav-title {
+    flex: 1;
+    text-align: center;
+}
+
+.nav-title a {
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.2em;
+    letter-spacing: 0.5px;
+}
+
+.nav-toggle {
+    flex: 1;
+    text-align: right;
+}
+
+.burger-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0.5em 0.7em;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.burger-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ===== SLIDE-OUT MENU ===== */
+.nav-menu {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 300px;
+    height: 100vh;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+    overflow-y: auto;
+}
+
+.nav-menu.active {
+    right: 0;
+}
+
+.menu-header {
+    padding: 1.5em 1.5em 1em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0.5em;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.menu-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.menu-links {
+    padding: 0 1.5em 1.5em;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.8em 1em;
+    margin: 0.5em 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    font-size: 0.95em;
+    font-weight: 400;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.menu-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-5px);
+    box-shadow: var(--shadow-lg);
+    text-decoration: none;
+}
+
+.menu-link.logout {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.3);
+}
+
+.menu-link.logout:hover {
+    background: rgba(220, 53, 69, 0.3);
+}
+
+.menu-link.manage {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.menu-link.manage:hover {
+    background: rgba(40, 167, 69, 0.3);
+}
+
+/* ===== OVERLAY ===== */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+    backdrop-filter: blur(3px);
+}
+
+.overlay.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* ===== CLOSE BUTTON ===== */
+.close-btn {
+    position: absolute;
+    top: 0.8em;
+    right: 0.8em;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0.4em;
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.7em 1em;
+        min-height: 55px;
+    }
+    
+    .nav-welcome {
+        font-size: 0.85em;
+    }
+    
+    .nav-title a {
+        font-size: 1.1em;
+    }
+    
+    .nav-menu {
+        width: 280px;
+        right: -280px;
+    }
+    
+    .menu-links {
+        padding: 0 1em 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-welcome {
+        display: none;
+    }
+    
+    .nav-title {
+        flex: 2;
+        text-align: left;
+    }
+    
+    .nav-toggle {
+        flex: 0;
+    }
+}
