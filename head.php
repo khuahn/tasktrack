@@ -6,130 +6,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Tracker</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .navbar {
-            background: #008080;
-            color: #fff;
-            padding: 0.5em 1em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            min-height: 50px;
-        }
-        
-        .nav-welcome {
-            flex: 1;
-            font-size: 0.9em;
-        }
-        
-        .nav-title {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .nav-title a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        .nav-toggle {
-            flex: 1;
-            text-align: right;
-        }
-        
-        .burger-btn {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.3em;
-            cursor: pointer;
-            padding: 0.3em 0.5em;
-        }
-        
-        /* Slide-out menu */
-        .nav-menu {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 280px;
-            height: 100vh;
-            background: #008080;
-            transition: right 0.3s ease;
-            z-index: 1000;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-            overflow-y: auto;
-        }
-        
-        .nav-menu.active {
-            right: 0;
-        }
-        
-        .menu-header {
-            padding: 1em;
-            border-bottom: 1px solid #006666;
-            margin-bottom: 0.5em;
-        }
-        
-        .menu-header h3 {
-            margin: 0;
-            font-size: 1.1em;
-        }
-        
-        .menu-links {
-            padding: 0 1em;
-        }
-        
-        .menu-link {
-            display: block;
-            color: #fff;
-            text-decoration: none;
-            padding: 0.6em 0.8em;
-            margin: 0.4em 0;
-            background: #006666;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-        
-        .menu-link.logout {
-            background: #dc3545;
-        }
-        
-        .menu-link.manage {
-            background: #28a745;
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: none;
-        }
-        
-        .overlay.active {
-            display: block;
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 0.5em;
-            right: 0.5em;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.3em;
-            cursor: pointer;
-            padding: 0.3em;
-        }
-    </style>
+    
+    <!-- Global CSS First -->
+    <link rel="stylesheet" href="css/main.css?v=2">
+    
+    <!-- Component-Specific CSS -->
+    <link rel="stylesheet" href="css/head.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
 <?php
@@ -138,22 +23,24 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     $user_role = $_SESSION['role'];
     $username = $_SESSION['username'] ?? 'User';
     ?>
+    
+    <!-- Modern Navigation Bar -->
     <nav class="navbar">
-        <!-- Left - Welcome message -->
+        <!-- Welcome Section -->
         <div class="nav-welcome">
-            Welcome <strong><?php echo htmlspecialchars($username); ?></strong>! (<?php echo ucfirst($user_role); ?>)
+            <i class="fa fa-user-circle"></i> Welcome, <strong><?php echo htmlspecialchars($username); ?></strong>
         </div>
         
-        <!-- Center - Task Tracker title -->
+        <!-- Title Section -->
         <div class="nav-title">
             <a href="index.php">
                 <i class="fa fa-tasks"></i> Task Tracker
             </a>
         </div>
         
-        <!-- Right - Hamburger menu toggle -->
+        <!-- Menu Toggle -->
         <div class="nav-toggle">
-            <button class="burger-btn" id="burgerBtn">
+            <button class="burger-btn" id="burgerBtn" aria-label="Toggle menu">
                 <i class="fa fa-bars"></i>
             </button>
         </div>
@@ -162,14 +49,14 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     <!-- Overlay for closing menu -->
     <div class="overlay" id="overlay"></div>
     
-    <!-- Slide-out menu -->
+    <!-- Slide-out Navigation Menu -->
     <div class="nav-menu" id="navMenu">
-        <button class="close-btn" id="closeBtn">
+        <button class="close-btn" id="closeBtn" aria-label="Close menu">
             <i class="fa fa-times"></i>
         </button>
         
         <div class="menu-header">
-            <h3>Navigation Menu</h3>
+            <h3><i class="fa fa-compass"></i> Navigation</h3>
         </div>
         
         <div class="menu-links">
@@ -205,52 +92,21 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
             
             <?php if ($user_role === 'admin'): ?>
                 <a href="all_done.php" class="menu-link">
-                    <i class="fa fa-check-circle"></i> All Completed
+                    <i class="fa fa-check-double"></i> All Completed
                 </a>
             <?php endif; ?>
             
             <a href="logout.php" class="menu-link logout">
-                <i class="fa fa-sign-out"></i> Logout
+                <i class="fa fa-sign-out-alt"></i> Logout
             </a>
         </div>
     </div>
     
-    <script>
-        const burgerBtn = document.getElementById('burgerBtn');
-        const closeBtn = document.getElementById('closeBtn');
-        const navMenu = document.getElementById('navMenu');
-        const overlay = document.getElementById('overlay');
-        
-        // Open menu
-        burgerBtn.addEventListener('click', function() {
-            navMenu.classList.add('active');
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-        
-        // Close menu
-        function closeMenu() {
-            navMenu.classList.remove('active');
-            overlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-        
-        closeBtn.addEventListener('click', closeMenu);
-        overlay.addEventListener('click', closeMenu);
-        
-        // Close menu when pressing Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeMenu();
-            }
-        });
-        
-        // Close menu when clicking on a menu link
-        document.querySelectorAll('.menu-link').forEach(link => {
-            link.addEventListener('click', closeMenu);
-        });
-    </script>
+    <!-- Global JavaScript -->
+    <script src="js/main.js"></script>
+    
+    <!-- Component-Specific JavaScript -->
+    <script src="js/head.js"></script>
+    
     <?php
 }
-?>
-<script src="main.js"></script>
