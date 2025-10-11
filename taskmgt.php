@@ -22,7 +22,6 @@ $action = $_GET['action'] ?? '';
 $task_id = intval($_GET['id'] ?? 0);
 
 // Filters (GET + session persistence)
-if (!isset($_SESSION)) { session_start(); }
 // Reset
 if (isset($_GET['f_reset']) && $_GET['f_reset'] === '1') {
     unset($_SESSION['tmgt_f_priority'], $_SESSION['tmgt_f_assigned_to'], $_SESSION['tmgt_f_q']);
@@ -191,9 +190,36 @@ if ($role === 'admin') {
     );
 }
 
-$stmt->execute();
-$tasks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$stmt->close();
+// Build query using safe string interpolation to avoid get_result dependency
+$conditions = ['t.priority != "DONE"'];
+if ($role !== 'admin') {
+    $conditions[] = 'u.team_id = ' . intval($team_id);
+}
+if ($usePriorityFilter) {
+    $conditions[] = 't.priority = \'' . $conn->real_escape_string($filterPriority) . '\'';
+}
+if ($useAssigneeFilter) {
+    $conditions[] = 't.assigned_to = ' . intval($filterAssignedTo);
+}
+if ($useQueryFilter) {
+    $like = '%' . $conn->real_escape_string($filterQuery) . '%';
+    $conditions[] = "(t.name LIKE '$like' OR t.link LIKE '$like')";
+}
+
+$whereSql = implode(' AND ', $conditions);
+$sql = "
+    SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+    FROM tasks t
+    JOIN users u ON t.assigned_to = u.id
+    LEFT JOIN notes n ON t.id = n.task_id
+    WHERE $whereSql
+    GROUP BY t.id
+    ORDER BY (COUNT(n.id) = 0) DESC,
+      CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
+";
+
+$res = $conn->query($sql);
+$tasks = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 
 ?>
 <!-- Page-Specific CSS (loaded after global and component CSS) -->
