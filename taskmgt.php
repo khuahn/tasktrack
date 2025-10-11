@@ -122,19 +122,26 @@ $priorityData = [
  * Returns: "Today (0 days ago)", "Yesterday (1 day ago)", or "MM/DD/YY (X days ago)"
  */
 function formatTaskDate($dateString) {
-    $date = new DateTime($dateString);
+    if (empty($dateString) || $dateString === '0000-00-00 00:00:00') {
+        return '—';
+    }
+    try {
+        $date = new DateTime($dateString);
+    } catch (Exception $e) {
+        return '—';
+    }
     $now = new DateTime();
     $diff = $now->diff($date);
-    $days = $diff->days;
+    $days = (int)$diff->days;
 
-    if ($days == 0) {
-        return "Today (0 days ago)";
-    } elseif ($days == 1) {
-        return "Yesterday (1 day ago)";
-    } else {
-        $formattedDate = $date->format('m/d/y');
-        return "$formattedDate ($days days ago)";
+    if ($days === 0) {
+        return 'Today (0 days ago)';
     }
+    if ($days === 1) {
+        return 'Yesterday (1 day ago)';
+    }
+    $formattedDate = $date->format('m/d/y');
+    return "$formattedDate ($days days ago)";
 }
 
 // List users for assignment (admin: all, teamlead: own team)
