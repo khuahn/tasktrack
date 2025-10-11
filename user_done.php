@@ -1,12 +1,10 @@
 <?php
 // user_done.php - User completed tasks placeholder
 include 'auth.php';
-// Only members; teamlead and admin redirect
-if (get_user_role() !== 'member') {
-    if (get_user_role() === 'teamlead') { header('Location: team_done.php'); exit; }
-    if (get_user_role() === 'admin') { header('Location: all_done.php'); exit; }
-    require_any_role(['member']);
-}
+// Allow teamlead and member; admin goes to all_done
+require_login();
+$role = get_user_role();
+if ($role === 'admin') { header('Location: all_done.php'); exit; }
 include 'head.php';
 include 'db.php';
 
