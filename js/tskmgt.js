@@ -115,6 +115,14 @@
       .then(() => { closeEdit(); location.reload(); });
   });
 
+  // Auto-submit filters on change
+  const filterForm = document.getElementById('filterForm');
+  const filterPriority = document.getElementById('filterPriority');
+  const filterAssignedTo = document.getElementById('filterAssignedTo');
+  [filterPriority, filterAssignedTo].forEach(el => {
+    if (el) el.addEventListener('change', () => filterForm?.submit());
+  });
+
   // Close modals by clicking outside or Esc
   document.addEventListener('click', function(e) {
     if (e.target.classList?.contains('modal')) {
