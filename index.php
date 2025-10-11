@@ -9,23 +9,22 @@ include 'db.php';
 $user_id = $_SESSION['user_id'];
 $role = get_user_role();
 
-// ALTERNATIVE QUERY: More explicit sorting
-$stmt = $conn->prepare('
-    SELECT t.*, COUNT(n.id) as note_count 
-    FROM tasks t 
-    LEFT JOIN notes n ON t.id = n.task_id 
-    WHERE t.assigned_to = ? AND t.priority != "DONE" 
-    GROUP BY t.id 
-    ORDER BY 
-        (COUNT(n.id) = 0) DESC,  -- Tasks without notes first (1), then with notes (0)
-        CASE 
-            WHEN COUNT(n.id) = 0 THEN t.assigned_at 
-            ELSE t.updated_at 
-        END ASC
-');
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$tasks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+// Hosting-safe query (avoid get_result) with equivalent sorting
+$uid = intval($user_id);
+$sql = "
+    SELECT t.*, COALESCE(nc.note_count, 0) AS note_count
+    FROM tasks t
+    LEFT JOIN (
+        SELECT task_id, COUNT(*) AS note_count
+        FROM notes
+        GROUP BY task_id
+    ) nc ON nc.task_id = t.id
+    WHERE t.assigned_to = $uid AND t.priority <> 'DONE'
+    ORDER BY (COALESCE(nc.note_count, 0) = 0) DESC,
+      CASE WHEN COALESCE(nc.note_count, 0) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
+";
+$res = $conn->query($sql);
+$tasks = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 
 // Priority data configuration - defines classes and icons for each priority level
 $priorityData = [

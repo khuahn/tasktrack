@@ -21,11 +21,11 @@
         
         bindEvents() {
             // Open menu
-            this.burgerBtn.addEventListener('click', () => this.openMenu());
+            if (this.burgerBtn) this.burgerBtn.addEventListener('click', () => this.openMenu());
             
             // Close menu
-            this.closeBtn.addEventListener('click', () => this.closeMenu());
-            this.overlay.addEventListener('click', () => this.closeMenu());
+            if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeMenu());
+            if (this.overlay) this.overlay.addEventListener('click', () => this.closeMenu());
             
             // Close menu with Escape key
             document.addEventListener('keydown', (e) => {
