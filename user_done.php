@@ -53,57 +53,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
             </div>
         </form>
         </div>
-        <?php if (empty($tasks)): ?>
-            <div class="empty-state">
-                <i class="fa fa-check-circle"></i>
-                <h3>No Completed Tasks</h3>
-            </div>
-        <?php else: ?>
-            <table class="task-table">
-                <thead>
-                    <tr>
-                        <th>Status</th>
-                        <th>Task</th>
-                        <th>Notes</th>
-                        <th>Completed</th>
-                        <th>Assigned</th>
-                        <th>Restore</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($tasks as $t): ?>
-                    <tr>
-                        <td>
-                            <span class="priority-badge priority-done">
-                                <i class="fa fa-check"></i> DONE
-                            </span>
-                        </td>
-                        <td>
-                            <a href="<?= htmlspecialchars($t['link']) ?>" target="_blank" class="task-link">
-                                <i class="fa fa-external-link-alt"></i>
-                                <?= htmlspecialchars($t['name']) ?>
-                            </a>
-                            <?php if (!empty($t['last_restore'])): list($restoredBy,$restoredAt) = explode('|',$t['last_restore']); ?>
-                                <div class="restored-badge"><i class="fa fa-undo"></i> Restored by <?= htmlspecialchars($restoredBy) ?> on <?= htmlspecialchars($restoredAt) ?></div>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <button class="action-btn" onclick="showNotes(<?= intval($t['id']) ?>, '<?= addslashes($t['name']) ?>');return false;" title="View Notes">
-                                <i class="fa-regular fa-file-lines"></i>
-                            </button>
-                        </td>
-                        <td><div class="date-info"><span class="date-main"><?= date('m/d/y', strtotime($t['completed_at'])) ?></span></div></td>
-                        <td><div class="date-info"><span class="date-main"><?= date('m/d/y - H:i', strtotime($t['assigned_at'])) ?></span></div></td>
-                        <td>
-                            <button class="action-btn" onclick="confirmRestore('taskmgt.php?action=restore&id=<?= intval($t['id']) ?>')" title="Restore to Active">
-                                <i class="fa fa-recycle"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+        <!-- List moved to the second card below -->
     </div>
     <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
