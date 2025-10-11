@@ -44,34 +44,6 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
 
 <div class="main-container">
     <div class="task-table-container stack-gap-md">
-        <!-- Filters -->
-        <div class="filter-container">
-        <form method="get" class="filters-bar">
-            <div class="form-group">
-                <label for="doneFilterPriority" class="sr-only">Priority</label>
-                <select class="form-control" id="doneFilterPriority" name="f_priority">
-                    <option value="" <?= !$useP?'selected':'' ?>>All Status</option>
-                    <option value="DONE" <?= $filterPriority==='DONE'?'selected':'' ?>>Done</option>
-                    <option value="PRIO" <?= $filterPriority==='PRIO'?'selected':'' ?>>Prio</option>
-                    <option value="HIGH" <?= $filterPriority==='HIGH'?'selected':'' ?>>High</option>
-                    <option value="MID" <?= $filterPriority==='MID'?'selected':'' ?>>Mid</option>
-                    <option value="LOW" <?= $filterPriority==='LOW'?'selected':'' ?>>Low</option>
-                    <option value="PEND" <?= $filterPriority==='PEND'?'selected':'' ?>>Pending</option>
-                </select>
-            </div>
-            <div class="form-group search-input">
-                <label for="doneQuery" class="sr-only">Search</label>
-                <input class="form-control" id="doneQuery" type="text" name="f_q" placeholder="Search by task name or link" value="<?= htmlspecialchars($q) ?>">
-            </div>
-            <div class="btn-group">
-                <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
-                <a class="btn btn-secondary" href="all_done.php"><i class="fa fa-undo"></i> Reset</a>
-            </div>
-        </form>
-        </div>
-        <!-- List moved to the second card below -->
-    </div>
-    <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>
