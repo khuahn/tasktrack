@@ -245,8 +245,8 @@ if ($res === false) {
                   <input type="text" class="form-control" id="filterQuery" name="f_q" placeholder="Search tasks" value="<?= htmlspecialchars($filterQuery) ?>" />
               </div>
               <div class="btn-group">
-                  <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
-                  <a class="btn btn-secondary" href="taskmgt.php?f_reset=1"><i class="fa fa-undo"></i> Reset</a>
+                  <button type="submit" class="btn btn-primary btn-icon" title="Apply Filters"><i class="fa fa-filter"></i></button>
+                  <a class="btn btn-secondary btn-icon" href="taskmgt.php?f_reset=1" title="Reset Filters"><i class="fa fa-undo"></i></a>
               </div>
           </form>
           <div class="filters-right">
