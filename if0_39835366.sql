@@ -1,3 +1,4 @@
+-- BEGIN EXISTING DUMP (kept intact)
 -- phpMyAdmin SQL Dump
 -- version 4.9.0.1
 -- https://www.phpmyadmin.net/
@@ -249,3 +250,39 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+=======
+-- Updates for TaskTrack to support restore audit and done-page features
+-- Safe to run repeatedly (IF NOT EXISTS guards)
+
+-- 1) Audit trail for task restore events
+CREATE TABLE IF NOT EXISTS task_events (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  task_id INT NOT NULL,
+  user_id INT NOT NULL,
+  event_type ENUM('RESTORE') NOT NULL,
+  created_at DATETIME NOT NULL,
+  CONSTRAINT fk_task_events_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+  CONSTRAINT fk_task_events_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_task_events_task_created (task_id, created_at),
+  INDEX idx_task_events_type_created (event_type, created_at)
+);
+
+-- No schema changes required to tasks/notes/users; existing columns are used.
+-- Application now logs a row into task_events on restore.
+
+-- APPEND: Updates for TaskTrack to support restore audit and done-page features
+-- Safe to run repeatedly (IF NOT EXISTS guards)
+
+CREATE TABLE IF NOT EXISTS task_events (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  task_id INT NOT NULL,
+  user_id INT NOT NULL,
+  event_type ENUM('RESTORE') NOT NULL,
+  created_at DATETIME NOT NULL,
+  CONSTRAINT fk_task_events_task FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+  CONSTRAINT fk_task_events_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_task_events_task_created (task_id, created_at),
+  INDEX idx_task_events_type_created (event_type, created_at)
+);
+
+-- END APPEND
