@@ -211,49 +211,9 @@ if ($res === false) {
 <link rel="stylesheet" href="css/tskmgt.css?v=1">
 
 <div class="main-container">
-    <!-- Header/Filters container -->
-    <div class="task-table-container stack-gap-10" style="padding: var(--space-md);">
-        <div class="d-flex" style="justify-content: flex-end; align-items:center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 6px;"></div>
-        <?php if ($message): ?>
-            <div class="text-success" style="margin-bottom: var(--space-md);"><?= htmlspecialchars($message) ?></div>
-        <?php endif; ?>
-        <!-- Filters/Add row: left = filters; right = Add Task -->
-        <div class="filters-row">
-          <form id="filterForm" method="get" class="filters-bar filters-left" style="flex: 1 1 auto;">
-              <div class="form-group">
-                  <label for="filterPriority" class="sr-only">Priority</label>
-                  <select class="form-control" name="f_priority" id="filterPriority">
-                      <option value="" <?= !$usePriorityFilter ? 'selected' : '' ?>>All Priorities</option>
-                      <option value="LOW" <?= $filterPriority==='LOW' ? 'selected' : '' ?>>Low</option>
-                      <option value="MID" <?= $filterPriority==='MID' ? 'selected' : '' ?>>Mid</option>
-                      <option value="HIGH" <?= $filterPriority==='HIGH' ? 'selected' : '' ?>>High</option>
-                      <option value="PRIO" <?= $filterPriority==='PRIO' ? 'selected' : '' ?>>Prio</option>
-                      <option value="PEND" <?= $filterPriority==='PEND' ? 'selected' : '' ?>>Pending</option>
-                  </select>
-              </div>
-              <div class="form-group">
-                  <label for="filterAssignedTo" class="sr-only">Assignee</label>
-                  <select class="form-control" name="f_assigned_to" id="filterAssignedTo">
-                      <option value="0" <?= !$useAssigneeFilter ? 'selected' : '' ?>>All Assignees</option>
-                      <?php foreach ($user_list as $id => $name): ?>
-                          <option value="<?= $id ?>" <?= $filterAssignedTo===$id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
-                      <?php endforeach; ?>
-                  </select>
-              </div>
-              <div class="form-group search-input">
-                  <label for="filterQuery" class="sr-only">Search</label>
-                  <input type="text" class="form-control" id="filterQuery" name="f_q" placeholder="Search tasks" value="<?= htmlspecialchars($filterQuery) ?>" />
-              </div>
-              <div class="btn-group">
-                  <button type="submit" class="btn btn-primary btn-icon" title="Apply Filters"><i class="fa fa-filter"></i></button>
-                  <a class="btn btn-secondary btn-icon" href="taskmgt.php?f_reset=1" title="Reset Filters"><i class="fa fa-undo"></i></a>
-              </div>
-          </form>
-          <div class="filters-right">
-              <button type="button" class="btn btn-accent btn-lg" onclick="document.getElementById('addTaskModal').style.display='flex';"><i class="fa fa-plus"></i> Add Task</button>
-          </div>
-        </div>
-    </div>
+    <?php if ($message): ?>
+        <div class="text-success" style="margin: var(--space-md);"><?= htmlspecialchars($message) ?></div>
+    <?php endif; ?>
 
     <!-- Tasks Table -->
     <div class="task-table-container stack-gap-md">
@@ -330,46 +290,7 @@ if ($res === false) {
     </div>
 </div>
 
-<!-- Add Task Modal -->
-<div id="addTaskModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3><i class="fa fa-plus" style="color:#008080"></i> Add Task</h3>
-    </div>
-    <div class="modal-body">
-      <form method="post" action="?action=add">
-        <?= csrf_input(); ?>
-        <div class="form-group">
-          <input class="form-control" type="text" name="name" placeholder="Task Name" required>
-        </div>
-        <div class="form-group">
-          <input class="form-control" type="text" name="link" placeholder="Task Link (optional)">
-        </div>
-        <div class="form-group">
-          <select class="form-control" name="priority">
-            <option value="LOW">Low</option>
-            <option value="MID">Mid</option>
-            <option value="HIGH">High</option>
-            <option value="PRIO">Prio</option>
-            <option value="PEND">Pending</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <select class="form-control" name="assigned_to" required>
-            <option value="0">Select User</option>
-            <?php foreach ($user_list as $id => $name): ?>
-              <option value="<?= $id ?>"><?= htmlspecialchars($name) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="btn-group">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add</button>
-          <button type="button" class="btn btn-secondary" onclick="document.getElementById('addTaskModal').style.display='none';">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<!-- Add Task moved to global modal in header -->
 
 <!-- Notes Modal - for viewing and adding task notes -->
 <div id="notesModal" class="modal">

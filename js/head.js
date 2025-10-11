@@ -8,6 +8,7 @@
             this.closeBtn = document.getElementById('closeBtn');
             this.navMenu = document.getElementById('navMenu');
             this.overlay = document.getElementById('overlay');
+            this.filterModal = document.getElementById('globalFilterModal');
             
             if (this.burgerBtn && this.navMenu) {
                 this.init();
@@ -56,8 +57,32 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             new Navigation();
+            initGlobalFilters();
         });
     } else {
         new Navigation();
+        initGlobalFilters();
+    }
+
+    function initGlobalFilters() {
+        window.openFilterModal = function() {
+            const modal = document.getElementById('globalFilterModal');
+            if (modal) modal.style.display = 'flex';
+        };
+        window.closeFilterModal = function() {
+            const modal = document.getElementById('globalFilterModal');
+            if (modal) modal.style.display = 'none';
+        };
+        window.applyGlobalFilters = function() {
+            const p = document.getElementById('gf_priority')?.value || '';
+            const a = document.getElementById('gf_assignee')?.value || '';
+            const q = document.getElementById('gf_query')?.value || '';
+            const params = new URLSearchParams(window.location.search);
+            if (p !== undefined) params.set('f_priority', p);
+            if (a !== undefined && a !== '') params.set('f_assigned_to', a); else params.delete('f_assigned_to');
+            if (q !== undefined) params.set('f_q', q);
+            window.location.search = params.toString();
+            window.closeFilterModal();
+        };
     }
 })();
