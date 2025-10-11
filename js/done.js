@@ -67,4 +67,10 @@
   window.showNotes = showNotes;
   window.closeNotes = closeNotes;
   window.confirmRestore = confirmRestore;
+
+  // Auto-submit filters
+  const fp = document.getElementById('doneFilterPriority');
+  const fq = document.getElementById('doneQuery');
+  if (fp) fp.addEventListener('change', () => fp.form?.submit());
+  if (fq) fq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fq.form?.submit(); } });
 })();
