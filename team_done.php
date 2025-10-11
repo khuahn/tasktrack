@@ -55,34 +55,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
 <link rel="stylesheet" href="css/done.css?v=1">
 
 <div class="main-container">
-    <div class="task-table-container stack-gap-md">
-        <!-- Filters -->
-        <div class="filter-container">
-        <form method="get" class="filters-bar">
-            <div class="form-group">
-                <label for="teamFilterUser" class="sr-only">User</label>
-                <select class="form-control" id="teamFilterUser" name="f_user">
-                    <option value="0" <?= $filterUser===0?'selected':'' ?>>All Users</option>
-                    <?php
-                        $users = $conn->query('SELECT id, username FROM users WHERE team_id='.$team_id.' ORDER BY username ASC');
-                        while ($u = $users->fetch_assoc()):
-                    ?>
-                        <option value="<?= intval($u['id']) ?>" <?= $filterUser===intval($u['id'])?'selected':'' ?>><?= htmlspecialchars($u['username']) ?></option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-            <div class="form-group search-input">
-                <label for="teamDoneQuery" class="sr-only">Search</label>
-                <input class="form-control" id="teamDoneQuery" type="text" name="f_q" placeholder="Search by task name or link" value="<?= htmlspecialchars($q) ?>">
-            </div>
-            <div class="btn-group">
-                <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
-                <a class="btn btn-secondary" href="team_done.php"><i class="fa fa-undo"></i> Reset</a>
-            </div>
-        </form>
-        </div>
-        <!-- List moved to the second card below -->
-    </div>
+    
     <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
