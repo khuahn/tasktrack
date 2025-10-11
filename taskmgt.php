@@ -80,16 +80,31 @@ if ($action === 'complete' && $task_id) {
     $message = 'Task marked complete.';
 }
 if ($action === 'restore' && $task_id) {
-    // Restore task and log event
+    // Restore task and log event (skip logging if table missing)
     $stmt = $conn->prepare('UPDATE tasks SET priority="PEND", completed_at=NULL WHERE id=?');
     $stmt->bind_param('i', $task_id);
     $stmt->execute();
     $stmt->close();
-    // Log restore event
-    $log = $conn->prepare('INSERT INTO task_events (task_id, user_id, event_type, created_at) VALUES (?, ?, "RESTORE", NOW())');
-    $log->bind_param('ii', $task_id, $user_id);
-    $log->execute();
-    $log->close();
+    // Best-effort logging
+    try {
+        $conn->query('CREATE TABLE IF NOT EXISTS task_events (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            task_id INT NOT NULL,
+            user_id INT NOT NULL,
+            event_type ENUM("RESTORE") NOT NULL,
+            created_at DATETIME NOT NULL,
+            INDEX idx_task_events_task_created (task_id, created_at),
+            INDEX idx_task_events_type_created (event_type, created_at)
+        )');
+        $log = $conn->prepare('INSERT INTO task_events (task_id, user_id, event_type, created_at) VALUES (?, ?, "RESTORE", NOW())');
+        if ($log) {
+            $log->bind_param('ii', $task_id, $user_id);
+            $log->execute();
+            $log->close();
+        }
+    } catch (Throwable $e) {
+        // ignore logging failures
+    }
     $message = 'Task restored.';
 }
 
