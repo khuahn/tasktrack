@@ -81,10 +81,16 @@ if ($action === 'complete' && $task_id) {
     $message = 'Task marked complete.';
 }
 if ($action === 'restore' && $task_id) {
+    // Restore task and log event
     $stmt = $conn->prepare('UPDATE tasks SET priority="PEND", completed_at=NULL WHERE id=?');
     $stmt->bind_param('i', $task_id);
     $stmt->execute();
     $stmt->close();
+    // Log restore event
+    $log = $conn->prepare('INSERT INTO task_events (task_id, user_id, event_type, created_at) VALUES (?, ?, "RESTORE", NOW())');
+    $log->bind_param('ii', $task_id, $user_id);
+    $log->execute();
+    $log->close();
     $message = 'Task restored.';
 }
 
