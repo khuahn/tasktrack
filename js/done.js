@@ -73,4 +73,10 @@
   const fq = document.getElementById('doneQuery');
   if (fp) fp.addEventListener('change', () => fp.form?.submit());
   if (fq) fq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fq.form?.submit(); } });
+
+  // Team done filters
+  const tfu = document.getElementById('teamFilterUser');
+  const tdq = document.getElementById('teamDoneQuery');
+  if (tfu) tfu.addEventListener('change', () => tfu.form?.submit());
+  if (tdq) tdq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); tdq.form?.submit(); } });
 })();
