@@ -15,6 +15,7 @@
     box-shadow: var(--shadow-sm); 
     overflow: hidden; 
 }
+.stack-gap-10 { margin-bottom: 10px; }
 
 /* ===== TABLE STRUCTURE STYLES ===== */
 .task-table { 
@@ -150,3 +151,4 @@
 .filters-bar .form-group { margin: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .filters-bar .search-input { flex: 1 1 280px; min-width: 220px; }
+.filters-bar .search-input input.form-control { max-width: 360px; }
