@@ -60,6 +60,9 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
         </div>
         
         <div class="menu-links">
+            <a href="#" class="menu-link" onclick="if(window.openFilterModal){openFilterModal();} return false;">
+                <i class="fa fa-filter"></i> Filter/Search
+            </a>
             <?php if (in_array($user_role, ['admin', 'teamlead'])): ?>
                 <a href="taskmgt.php" class="menu-link manage">
                     <i class="fa fa-tasks"></i> Manage Tasks
