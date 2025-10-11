@@ -148,7 +148,7 @@ $stmt->close();
 
 ?>
 <!-- Page-Specific CSS (loaded after global and component CSS) -->
-<link rel="stylesheet" href="css/index.css?v=2">
+<link rel="stylesheet" href="css/tskmgt.css?v=1">
 
 <div class="main-container">
     <!-- Add Task Form -->
@@ -251,9 +251,9 @@ $stmt->close();
                             </div>
                         </td>
                         <td>
-                            <a class="action-btn" href="?action=edit&id=<?= intval($t['id']) ?>" title="Edit Task">
+                            <button class="action-btn" title="Edit Task" onclick="openEdit(<?= intval($t['id']) ?>, '<?= addslashes($t['name']) ?>', '<?= addslashes($t['link']) ?>', '<?= htmlspecialchars($t['priority']) ?>', <?= intval($t['assigned_to']) ?>); return false;">
                                 <i class="fa fa-edit"></i>
-                            </a>
+                            </button>
                             <a class="action-btn" href="?action=complete&id=<?= intval($t['id']) ?>" onclick="return confirm('Mark complete?');" title="Mark Complete">
                                 <i class="fa fa-check"></i>
                             </a>
@@ -264,46 +264,6 @@ $stmt->close();
             </table>
         <?php endif; ?>
     </div>
-
-    <?php if ($action === 'edit' && $task_id):
-        $res = $conn->query('SELECT * FROM tasks WHERE id=' . $task_id);
-        $edit = $res->fetch_assoc();
-    ?>
-    <!-- Edit Task Section -->
-    <div class="task-table-container" style="padding: var(--space-md); margin-top: var(--space-lg);">
-        <form method="post" action="?action=edit&id=<?= $task_id; ?>">
-            <?= csrf_input(); ?>
-            <h3 class="mb-2">Edit Task</h3>
-            <div class="form-group">
-                <input class="form-control" type="text" name="name" value="<?= htmlspecialchars($edit['name']); ?>" required>
-            </div>
-            <div class="form-group">
-                <input class="form-control" type="text" name="link" value="<?= htmlspecialchars($edit['link']); ?>">
-            </div>
-            <div class="form-group">
-                <select class="form-control" name="priority">
-                    <option value="LOW" <?php if ($edit['priority']==='LOW') echo 'selected'; ?>>Low</option>
-                    <option value="MID" <?php if ($edit['priority']==='MID') echo 'selected'; ?>>Mid</option>
-                    <option value="HIGH" <?php if ($edit['priority']==='HIGH') echo 'selected'; ?>>High</option>
-                    <option value="PRIO" <?php if ($edit['priority']==='PRIO') echo 'selected'; ?>>Prio</option>
-                    <option value="PEND" <?php if ($edit['priority']==='PEND') echo 'selected'; ?>>Pending</option>
-                    <option value="DONE" <?php if ($edit['priority']==='DONE') echo 'selected'; ?>>Done</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <select class="form-control" name="assigned_to" required>
-                    <option value="0">Select User</option>
-                    <?php foreach ($user_list as $id => $name): ?>
-                        <option value="<?= $id; ?>" <?php if ($edit['assigned_to']==$id) echo 'selected'; ?>><?= htmlspecialchars($name); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="btn-group">
-                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
-            </div>
-        </form>
-    </div>
-    <?php endif; ?>
 </div>
 
 <!-- Notes Modal - for viewing and adding task notes -->
@@ -328,7 +288,50 @@ $stmt->close();
     </div>
     </div>
 
+<!-- Edit Task Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa fa-edit" style="color:#008080"></i> Edit Task</h3>
+        </div>
+        <div class="modal-body">
+            <form id="editForm" method="post">
+                <?= csrf_input(); ?>
+                <input type="hidden" id="editTaskId" value="0">
+                <div class="form-group">
+                    <input class="form-control" type="text" name="name" id="editName" placeholder="Task Name" required>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" type="text" name="link" id="editLink" placeholder="Task Link (optional)">
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="priority" id="editPriority">
+                        <option value="LOW">Low</option>
+                        <option value="MID">Mid</option>
+                        <option value="HIGH">High</option>
+                        <option value="PRIO">Prio</option>
+                        <option value="PEND">Pending</option>
+                        <option value="DONE">Done</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select class="form-control" name="assigned_to" id="editAssignedTo" required>
+                        <option value="0">Select User</option>
+                        <?php foreach ($user_list as $id => $name): ?>
+                            <option value="<?= $id; ?>"><?= htmlspecialchars($name); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEdit()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
 <!-- Page-Specific JavaScript (loaded after global and component JS) -->
-<script src="js/index.js"></script>
+<script src="js/tskmgt.js"></script>
 
 <?php include 'foot.php'; ?>
