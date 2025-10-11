@@ -84,5 +84,14 @@
             window.location.search = params.toString();
             window.closeFilterModal();
         };
+
+        // Add Task link scrolls to Add Task section inside the modal
+        window.openAddTaskModal = function() {
+            window.openFilterModal();
+            setTimeout(() => {
+                const header = document.getElementById('addTaskSection');
+                if (header) header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+        };
     }
 })();

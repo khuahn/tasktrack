@@ -60,6 +60,11 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
         </div>
         
         <div class="menu-links">
+            <?php if (in_array($user_role, ['admin', 'teamlead'])): ?>
+            <a href="#" class="menu-link manage" onclick="if(window.openAddTaskModal){openAddTaskModal();} return false;">
+                <i class="fa fa-plus"></i> Add Task
+            </a>
+            <?php endif; ?>
             <a href="#" class="menu-link" onclick="if(window.openFilterModal){openFilterModal();} return false;">
                 <i class="fa fa-filter"></i> Filter/Search
             </a>
@@ -148,7 +153,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
                 <?php if (isset($user_role) && in_array($user_role, ['admin','teamlead'])): ?>
                 <hr class="mt-3 mb-3"/>
                 <div>
-                    <h3 class="mb-2"><i class="fa fa-plus" style="color:#008080"></i> Add Task</h3>
+                    <h3 id="addTaskSection" class="mb-2"><i class="fa fa-plus" style="color:#008080"></i> Add Task</h3>
                     <form method="post" action="taskmgt.php?action=add">
                         <?= function_exists('csrf_input') ? csrf_input() : '' ?>
                         <div class="form-group">
