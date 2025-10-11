@@ -57,6 +57,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
 <div class="main-container">
     <div class="task-table-container">
         <!-- Filters -->
+        <div class="filter-container">
         <form method="get" class="filters-bar">
             <div class="form-group">
                 <label for="teamFilterUser" class="sr-only">User</label>
@@ -79,6 +80,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
                 <a class="btn btn-secondary" href="team_done.php"><i class="fa fa-undo"></i> Reset</a>
             </div>
         </form>
+        </div>
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>
