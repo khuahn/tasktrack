@@ -165,52 +165,7 @@ $usePriorityFilter = in_array($filterPriority, $allowedPriorities, true);
 $useAssigneeFilter = $filterAssignedTo > 0;
 $useQueryFilter = $filterQuery !== '';
 
-if ($role === 'admin') {
-    $sql = '
-        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-        FROM tasks t
-        JOIN users u ON t.assigned_to = u.id
-        LEFT JOIN notes n ON t.id = n.task_id
-        WHERE t.priority != "DONE"
-          AND (? = '' OR t.priority = ?)
-          AND (? = 0 OR t.assigned_to = ?)
-          AND (? = '' OR t.name LIKE ? OR t.link LIKE ?)
-        GROUP BY t.id
-        ORDER BY (COUNT(n.id) = 0) DESC,
-          CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC';
-
-    $stmt = $conn->prepare($sql);
-    $qLike = '%' . $filterQuery . '%';
-    $stmt->bind_param(
-        'ssiiiss',
-        $filterPriority, $filterPriority,
-        $filterAssignedTo, $filterAssignedTo,
-        $filterQuery, $qLike, $qLike
-    );
-} else {
-    $sql = '
-        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-        FROM tasks t
-        JOIN users u ON t.assigned_to = u.id
-        LEFT JOIN notes n ON t.id = n.task_id
-        WHERE t.priority != "DONE" AND u.team_id = ?
-          AND (? = '' OR t.priority = ?)
-          AND (? = 0 OR t.assigned_to = ?)
-          AND (? = '' OR t.name LIKE ? OR t.link LIKE ?)
-        GROUP BY t.id
-        ORDER BY (COUNT(n.id) = 0) DESC,
-          CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC';
-
-    $stmt = $conn->prepare($sql);
-    $qLike = '%' . $filterQuery . '%';
-    $stmt->bind_param(
-        'issiiiss',
-        $team_id,
-        $filterPriority, $filterPriority,
-        $filterAssignedTo, $filterAssignedTo,
-        $filterQuery, $qLike, $qLike
-    );
-}
+// Build task list using query compatible with shared hosting
 
 // Build query using safe string interpolation to avoid get_result dependency
 $conditions = ["t.priority <> 'DONE'"];
