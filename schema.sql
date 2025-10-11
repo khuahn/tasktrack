@@ -39,3 +39,15 @@ CREATE TABLE notes (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Audit trail for task events (e.g., RESTORE)
+CREATE TABLE IF NOT EXISTS task_events (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    task_id INT NOT NULL,
+    user_id INT NOT NULL,
+    event_type ENUM('RESTORE') NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_task_events_task_id_created_at (task_id, created_at)
+);
