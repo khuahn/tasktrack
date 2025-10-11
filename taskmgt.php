@@ -24,6 +24,7 @@ $task_id = intval($_GET['id'] ?? 0);
 // Filters (GET)
 $filterPriority = $_GET['f_priority'] ?? '';
 $filterAssignedTo = intval($_GET['f_assigned_to'] ?? 0);
+$filterQuery = trim($_GET['f_q'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
@@ -119,119 +120,60 @@ if ($role === 'admin') {
     }
 }
 
-// List tasks (admin: all, teamlead: own team), exclude DONE, include note_count, replicate index sort, apply filters
+// List tasks (admin: all, teamlead: own team), exclude DONE, include note_count,
+// replicate index sort, apply filters (priority, assignee, search) using optional params
 $allowedPriorities = ['LOW','MID','HIGH','PRIO','PEND'];
 $usePriorityFilter = in_array($filterPriority, $allowedPriorities, true);
 $useAssigneeFilter = $filterAssignedTo > 0;
+$useQueryFilter = $filterQuery !== '';
 
 if ($role === 'admin') {
-    if ($usePriorityFilter && $useAssigneeFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND t.priority = ? AND t.assigned_to = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('si', $filterPriority, $filterAssignedTo);
-    } elseif ($usePriorityFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND t.priority = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('s', $filterPriority);
-    } elseif ($useAssigneeFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND t.assigned_to = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('i', $filterAssignedTo);
-    } else {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE"
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-    }
+    $sql = '
+        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+        FROM tasks t
+        JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN notes n ON t.id = n.task_id
+        WHERE t.priority != "DONE"
+          AND (? = '' OR t.priority = ?)
+          AND (? = 0 OR t.assigned_to = ?)
+          AND (? = '' OR t.name LIKE ? OR t.link LIKE ?)
+        GROUP BY t.id
+        ORDER BY (COUNT(n.id) = 0) DESC,
+          CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC';
+
+    $stmt = $conn->prepare($sql);
+    $qLike = '%' . $filterQuery . '%';
+    $stmt->bind_param(
+        'ssiiiss',
+        $filterPriority, $filterPriority,
+        $filterAssignedTo, $filterAssignedTo,
+        $filterQuery, $qLike, $qLike
+    );
 } else {
-    if ($usePriorityFilter && $useAssigneeFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND u.team_id = ? AND t.priority = ? AND t.assigned_to = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('isi', $team_id, $filterPriority, $filterAssignedTo);
-    } elseif ($usePriorityFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND u.team_id = ? AND t.priority = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('is', $team_id, $filterPriority);
-    } elseif ($useAssigneeFilter) {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND u.team_id = ? AND t.assigned_to = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('ii', $team_id, $filterAssignedTo);
-    } else {
-        $stmt = $conn->prepare('
-            SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
-            FROM tasks t
-            JOIN users u ON t.assigned_to = u.id
-            LEFT JOIN notes n ON t.id = n.task_id
-            WHERE t.priority != "DONE" AND u.team_id = ?
-            GROUP BY t.id
-            ORDER BY
-                (COUNT(n.id) = 0) DESC,
-                CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
-        ');
-        $stmt->bind_param('i', $team_id);
-    }
+    $sql = '
+        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+        FROM tasks t
+        JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN notes n ON t.id = n.task_id
+        WHERE t.priority != "DONE" AND u.team_id = ?
+          AND (? = '' OR t.priority = ?)
+          AND (? = 0 OR t.assigned_to = ?)
+          AND (? = '' OR t.name LIKE ? OR t.link LIKE ?)
+        GROUP BY t.id
+        ORDER BY (COUNT(n.id) = 0) DESC,
+          CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC';
+
+    $stmt = $conn->prepare($sql);
+    $qLike = '%' . $filterQuery . '%';
+    $stmt->bind_param(
+        'issiiiss',
+        $team_id,
+        $filterPriority, $filterPriority,
+        $filterAssignedTo, $filterAssignedTo,
+        $filterQuery, $qLike, $qLike
+    );
 }
+
 $stmt->execute();
 $tasks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -304,6 +246,10 @@ $stmt->close();
                         <option value="<?= $id ?>" <?= $filterAssignedTo===$id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div class="form-group search-input">
+                <label for="filterQuery" class="sr-only">Search</label>
+                <input type="text" class="form-control" id="filterQuery" name="f_q" placeholder="Search by task name or link" value="<?= htmlspecialchars($filterQuery) ?>" />
             </div>
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
