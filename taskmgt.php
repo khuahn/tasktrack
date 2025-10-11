@@ -213,17 +213,15 @@ if ($res === false) {
 <div class="main-container">
     <!-- Header/Filters container -->
     <div class="task-table-container stack-gap-10" style="padding: var(--space-md);">
-        <div class="d-flex" style="justify-content: space-between; align-items:center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 6px;">
-            <h2 style="margin: 0;"><i class="fa fa-tasks" style="color:#008080"></i> Manage Tasks</h2>
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('addTaskModal').style.display='flex';"><i class="fa fa-plus"></i> Add Task</button>
-            </div>
-        </div>
+        <div class="d-flex" style="justify-content: flex-end; align-items:center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 6px;"></div>
         <?php if ($message): ?>
             <div class="text-success" style="margin-bottom: var(--space-md);"><?= htmlspecialchars($message) ?></div>
         <?php endif; ?>
         <!-- Filters -->
         <form id="filterForm" method="get" class="filters-bar">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('addTaskModal').style.display='flex';"><i class="fa fa-plus"></i> Add Task</button>
+            </div>
             <div class="form-group">
                 <label for="filterPriority" class="sr-only">Priority</label>
                 <select class="form-control" name="f_priority" id="filterPriority">
