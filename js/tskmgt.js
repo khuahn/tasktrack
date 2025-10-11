@@ -119,9 +119,18 @@
   const filterForm = document.getElementById('filterForm');
   const filterPriority = document.getElementById('filterPriority');
   const filterAssignedTo = document.getElementById('filterAssignedTo');
+  const filterQuery = document.getElementById('filterQuery');
   [filterPriority, filterAssignedTo].forEach(el => {
     if (el) el.addEventListener('change', () => filterForm?.submit());
   });
+  if (filterQuery) {
+    filterQuery.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        filterForm?.submit();
+      }
+    });
+  }
 
   // Close modals by clicking outside or Esc
   document.addEventListener('click', function(e) {
