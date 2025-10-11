@@ -51,6 +51,9 @@
 .filters-bar .search-input { flex: 1 1 280px; min-width: 220px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+/* Filters container spacing */
+.filter-container { padding: var(--space-md); margin-bottom: var(--space-lg); }
+
 /* Restored badge */
 .restored-badge { display:inline-flex; align-items:center; gap:6px; background:#fff7ed; color:#9a3412; border:1px solid #fdba74; border-radius:12px; padding:2px 8px; font-size:0.72rem; margin-top:6px; }
 .restored-badge i { color:#f97316; }
