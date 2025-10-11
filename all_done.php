@@ -1,7 +1,13 @@
 <?php
-// all_done.php - All completed tasks placeholder
+// all_done.php - All completed tasks
 include 'auth.php';
-require_role('admin');
+// Only admin; redirect others
+$role = get_user_role();
+if ($role !== 'admin') {
+    if ($role === 'member') { header('Location: user_done.php'); exit; }
+    if ($role === 'teamlead') { header('Location: team_done.php'); exit; }
+    require_role('admin');
+}
 include 'head.php';
 include 'db.php';
 
@@ -11,54 +17,77 @@ $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
 ?>
-<div class="container">
-    <h2><i class="fa fa-check-circle" style="color:green"></i> All Completed Tasks</h2>
-    <table style="width:100%;border-collapse:collapse;">
-        <tr style="background:#008080;color:#fff;">
-            <th>Priority</th><th>Task</th><th>User</th><th>Notes</th><th>Completed</th><th>Assigned</th><th>Restore</th>
-        </tr>
-        <?php foreach ($tasks as $t): ?>
-        <tr>
-            <td><i class="fa fa-check" style="color:green"></i> Done</td>
-            <td><a href="<?php echo htmlspecialchars($t['link']); ?>" target="_blank" style="color:#008080;"><i class="fa fa-link"></i> <?php echo htmlspecialchars($t['name']); ?></a></td>
-            <td><?php echo htmlspecialchars($t['username']); ?></td>
-            <td><a href="#" onclick="showNotes(<?php echo $t['id']; ?>);return false;"><i class="fa fa-sticky-note" style="color:#008080"></i></a></td>
-            <td><?php echo date('m/d/y', strtotime($t['completed_at'])); ?></td>
-            <td><?php echo date('m/d/y - H:i', strtotime($t['assigned_at'])); ?></td>
-            <td><a href="taskmgt.php?action=restore&id=<?php echo $t['id']; ?>" onclick="return confirm('Restore task?');"><i class="fa fa-recycle" style="color:orange"></i></a></td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
-    <!-- Notes Modal (read-only) -->
-    <div id="notesModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;">
-        <div style="background:#fff;padding:2em;border-radius:8px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto;">
-            <h3><i class="fa fa-sticky-note" style="color:#008080"></i> Notes</h3>
-            <div id="notesContent"></div>
-            <button onclick="closeNotes()" style="margin-top:1em;background:#ccc;border:none;padding:0.5em 2em;border-radius:4px;">Close</button>
+<!-- Page-Specific CSS -->
+<link rel="stylesheet" href="css/done.css?v=1">
+
+<div class="main-container">
+    <div class="task-table-container">
+        <?php if (empty($tasks)): ?>
+            <div class="empty-state">
+                <i class="fa fa-check-circle"></i>
+                <h3>No Completed Tasks</h3>
+            </div>
+        <?php else: ?>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Task</th>
+                        <th>User</th>
+                        <th>Notes</th>
+                        <th>Completed</th>
+                        <th>Assigned</th>
+                        <th>Restore</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($tasks as $t): ?>
+                    <tr>
+                        <td>
+                            <span class="priority-badge priority-done">
+                                <i class="fa fa-check"></i> DONE
+                            </span>
+                        </td>
+                        <td>
+                            <a href="<?= htmlspecialchars($t['link']) ?>" target="_blank" class="task-link">
+                                <i class="fa fa-external-link-alt"></i>
+                                <?= htmlspecialchars($t['name']) ?>
+                            </a>
+                        </td>
+                        <td><?= htmlspecialchars($t['username']) ?></td>
+                        <td>
+                            <button class="action-btn" onclick="showNotes(<?= intval($t['id']) ?>, '<?= addslashes($t['name']) ?>');return false;" title="View Notes">
+                                <i class="fa-regular fa-file-lines"></i>
+                            </button>
+                        </td>
+                        <td><div class="date-info"><span class="date-main"><?= date('m/d/y', strtotime($t['completed_at'])) ?></span></div></td>
+                        <td><div class="date-info"><span class="date-main"><?= date('m/d/y - H:i', strtotime($t['assigned_at'])) ?></span></div></td>
+                        <td>
+                            <button class="action-btn" onclick="confirmRestore('taskmgt.php?action=restore&id=<?= intval($t['id']) ?>')" title="Restore to Active">
+                                <i class="fa fa-recycle"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Notes Modal (read-only) -->
+<div id="notesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-regular fa-file-lines" style="color:#008080"></i> <span id="modalTaskName">Task Notes</span></h3>
+        </div>
+        <div class="modal-body">
+            <div class="notes-container" id="notesContent"></div>
         </div>
     </div>
 </div>
-<script>
-function showNotes(taskId) {
-    document.getElementById('notesModal').style.display = 'flex';
-    fetch('notes.php?task_id=' + taskId)
-        .then(r => r.json())
-        .then(notes => {
-            let html = '';
-            notes.forEach(n => {
-                html += `<div style='border-bottom:1px solid #eee;padding:0.5em 0;'>`
-                    + `<b>${n.username}</b> <span style='color:#888;'>${formatDate(n.created_at)}</span><br>`
-                    + `<span>${n.note}</span></div>`;
-            });
-            document.getElementById('notesContent').innerHTML = html;
-        });
-}
-function closeNotes() {
-    document.getElementById('notesModal').style.display = 'none';
-}
-function formatDate(dt) {
-    let d = new Date(dt.replace(' ','T'));
-    return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear().toString().slice(-2)} - ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-}
-</script>
+
+<!-- Page-Specific JS -->
+<script src="js/done.js"></script>
+
 <?php include 'foot.php'; ?>
