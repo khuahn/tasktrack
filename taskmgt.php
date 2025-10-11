@@ -206,7 +206,7 @@ if ($role === 'admin') {
 }
 
 // Build query using safe string interpolation to avoid get_result dependency
-$conditions = ['t.priority != "DONE"'];
+$conditions = ["t.priority <> 'DONE'"];
 if ($role !== 'admin') {
     $conditions[] = 'u.team_id = ' . intval($team_id);
 }
@@ -223,18 +223,26 @@ if ($useQueryFilter) {
 
 $whereSql = implode(' AND ', $conditions);
 $sql = "
-    SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+    SELECT t.*, u.username AS assigned_user, COALESCE(nc.note_count, 0) AS note_count
     FROM tasks t
     JOIN users u ON t.assigned_to = u.id
-    LEFT JOIN notes n ON t.id = n.task_id
+    LEFT JOIN (
+        SELECT task_id, COUNT(*) AS note_count
+        FROM notes
+        GROUP BY task_id
+    ) nc ON nc.task_id = t.id
     WHERE $whereSql
-    GROUP BY t.id
-    ORDER BY (COUNT(n.id) = 0) DESC,
-      CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
+    ORDER BY (COALESCE(nc.note_count, 0) = 0) DESC,
+      CASE WHEN COALESCE(nc.note_count, 0) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
 ";
 
 $res = $conn->query($sql);
-$tasks = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
+if ($res === false) {
+    $message = 'Error loading tasks: ' . htmlspecialchars($conn->error);
+    $tasks = [];
+} else {
+    $tasks = $res->fetch_all(MYSQLI_ASSOC);
+}
 
 ?>
 <!-- Page-Specific CSS (loaded after global and component CSS) -->
