@@ -72,6 +72,35 @@ if ($action === 'restore' && $task_id) {
     $message = 'Task restored.';
 }
 
+// Priority data configuration - defines classes and icons for each priority level
+$priorityData = [
+    'LOW' => ['class' => 'priority-low', 'icon' => 'fa-arrow-down'],
+    'MID' => ['class' => 'priority-mid', 'icon' => 'fa-minus'],
+    'HIGH' => ['class' => 'priority-high', 'icon' => 'fa-arrow-up'],
+    'PRIO' => ['class' => 'priority-prio', 'icon' => 'fa-exclamation'],
+    'PEND' => ['class' => 'priority-pend', 'icon' => 'fa-hourglass-half']
+];
+
+/**
+ * Format date for display in Updated and Assigned columns
+ * Returns: "Today (0 days ago)", "Yesterday (1 day ago)", or "MM/DD/YY (X days ago)"
+ */
+function formatTaskDate($dateString) {
+    $date = new DateTime($dateString);
+    $now = new DateTime();
+    $diff = $now->diff($date);
+    $days = $diff->days;
+
+    if ($days == 0) {
+        return "Today (0 days ago)";
+    } elseif ($days == 1) {
+        return "Yesterday (1 day ago)";
+    } else {
+        $formattedDate = $date->format('m/d/y');
+        return "$formattedDate ($days days ago)";
+    }
+}
+
 // List users for assignment (admin: all, teamlead: own team)
 $user_list = [];
 if ($role === 'admin') {
@@ -86,87 +115,220 @@ if ($role === 'admin') {
     }
 }
 
-// List tasks (admin: all, teamlead: own team)
+// List tasks (admin: all, teamlead: own team), exclude DONE, include note_count, replicate index sort
 if ($role === 'admin') {
-    $res = $conn->query('SELECT t.*, u.username AS assigned_user FROM tasks t JOIN users u ON t.assigned_to=u.id');
+    $stmt = $conn->prepare('
+        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+        FROM tasks t
+        JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN notes n ON t.id = n.task_id
+        WHERE t.priority != "DONE"
+        GROUP BY t.id
+        ORDER BY
+            (COUNT(n.id) = 0) DESC,
+            CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
+    ');
 } else {
-    $res = $conn->query('SELECT t.*, u.username AS assigned_user FROM tasks t JOIN users u ON t.assigned_to=u.id WHERE u.team_id=' . $team_id);
+    $stmt = $conn->prepare('
+        SELECT t.*, u.username AS assigned_user, COUNT(n.id) AS note_count
+        FROM tasks t
+        JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN notes n ON t.id = n.task_id
+        WHERE t.priority != "DONE" AND u.team_id = ?
+        GROUP BY t.id
+        ORDER BY
+            (COUNT(n.id) = 0) DESC,
+            CASE WHEN COUNT(n.id) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
+    ');
+    $stmt->bind_param('i', $team_id);
 }
-$tasks = $res->fetch_all(MYSQLI_ASSOC);
+$stmt->execute();
+$tasks = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 ?>
-<div class="container">
-    <h2><i class="fa fa-tasks" style="color:#008080"></i> Manage Tasks</h2>
-    <?php if ($message): ?>
-        <div style="color:green; margin-bottom:1em;"><?php echo $message; ?></div>
-    <?php endif; ?>
-    <form method="post" action="?action=add" style="margin-bottom:2em;">
-        <?php echo csrf_input(); ?>
-        <h3>Add Task</h3>
-        <input type="text" name="name" placeholder="Task Name" required>
-        <input type="text" name="link" placeholder="Task Link">
-        <select name="priority">
-            <option value="LOW">Low</option>
-            <option value="MID">Mid</option>
-            <option value="HIGH">High</option>
-            <option value="PRIO">Prio</option>
-            <option value="PEND">Pending</option>
-        </select>
-        <select name="assigned_to">
-            <option value="0">Select User</option>
-            <?php foreach ($user_list as $id => $name): ?>
-                <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($name); ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit"><i class="fa fa-plus" style="color:green"></i> Add</button>
-    </form>
-    <table style="width:100%;border-collapse:collapse;">
-        <tr style="background:#008080;color:#fff;">
-            <th>ID</th><th>Name</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Actions</th>
-        </tr>
-        <?php foreach ($tasks as $t): ?>
-        <tr style="background:<?php echo $t['priority']==='DONE' ? '#ccc' : '#fff'; ?>;">
-            <td><?php echo $t['id']; ?></td>
-            <td><?php echo htmlspecialchars($t['name']); ?></td>
-            <td><?php echo $t['priority']; ?></td>
-            <td><?php echo htmlspecialchars($t['assigned_user']); ?></td>
-            <td><?php echo $t['priority']==='DONE' ? '<i class="fa fa-check" style="color:green"></i> Done' : '<i class="fa fa-tasks" style="color:#008080"></i> Active'; ?></td>
-            <td>
-                <a href="?action=edit&id=<?php echo $t['id']; ?>"><i class="fa fa-edit" style="color:#008080"></i></a>
-                <?php if ($t['priority']!=='DONE'): ?>
-                <a href="?action=complete&id=<?php echo $t['id']; ?>" onclick="return confirm('Mark complete?');"><i class="fa fa-check" style="color:green"></i></a>
-                <?php else: ?>
-                <a href="?action=restore&id=<?php echo $t['id']; ?>" onclick="return confirm('Restore task?');"><i class="fa fa-recycle" style="color:orange"></i></a>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
+<!-- Page-Specific CSS (loaded after global and component CSS) -->
+<link rel="stylesheet" href="css/index.css?v=2">
+
+<div class="main-container">
+    <!-- Add Task Form -->
+    <div class="task-table-container" style="padding: var(--space-md); margin-bottom: var(--space-lg);">
+        <h2 style="margin-bottom: var(--space-md);"><i class="fa fa-tasks" style="color:#008080"></i> Manage Tasks</h2>
+        <?php if ($message): ?>
+            <div class="text-success" style="margin-bottom: var(--space-md);"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
+        <form method="post" action="?action=add">
+            <?= csrf_input(); ?>
+            <h3 class="mb-2">Add Task</h3>
+            <div class="d-flex" style="gap: 0.5rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1 1 250px;">
+                    <input class="form-control" type="text" name="name" placeholder="Task Name" required>
+                </div>
+                <div class="form-group" style="flex: 2 1 300px;">
+                    <input class="form-control" type="text" name="link" placeholder="Task Link (optional)">
+                </div>
+                <div class="form-group" style="flex: 0 1 160px;">
+                    <select class="form-control" name="priority">
+                        <option value="LOW">Low</option>
+                        <option value="MID">Mid</option>
+                        <option value="HIGH">High</option>
+                        <option value="PRIO">Prio</option>
+                        <option value="PEND">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 0 1 220px;">
+                    <select class="form-control" name="assigned_to" required>
+                        <option value="0">Select User</option>
+                        <?php foreach ($user_list as $id => $name): ?>
+                            <option value="<?= $id ?>"><?= htmlspecialchars($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="btn-group" style="align-items: flex-start;">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="task-table-container">
+        <?php if (empty($tasks)): ?>
+            <div class="empty-state">
+                <i class="fa fa-check-circle"></i>
+                <h3>No Active Tasks</h3>
+                <p>All tasks are completed! Great work!</p>
+            </div>
+        <?php else: ?>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Task</th>
+                        <th>Notes</th>
+                        <th>Assigned To</th>
+                        <th>Updated</th>
+                        <th>Assigned</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($tasks as $t):
+                        $priority = $t['priority'];
+                        $priorityInfo = $priorityData[$priority] ?? $priorityData['LOW'];
+                        $hasNotes = intval($t['note_count'] ?? 0) > 0;
+                    ?>
+                    <tr>
+                        <td>
+                            <span class="priority-badge <?= $priorityInfo['class'] ?>">
+                                <i class="fa <?= $priorityInfo['icon'] ?>"></i>
+                                <?= htmlspecialchars($priority) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="<?= htmlspecialchars($t['link']) ?>" target="_blank" class="task-link">
+                                <i class="fa fa-external-link-alt"></i>
+                                <?= htmlspecialchars($t['name']) ?>
+                            </a>
+                        </td>
+                        <td>
+                            <button class="action-btn" onclick="showNotes(<?= intval($t['id']) ?>, '<?= addslashes($t['name']) ?>');return false;" title="View/Add Notes">
+                                <i class="fa-regular fa-file-lines notes-icon"></i>
+                                <span style="margin-left:6px; font-size:0.85rem; color: var(--gray-700);">(<?= intval($t['note_count'] ?? 0) ?>)</span>
+                            </button>
+                        </td>
+                        <td><?= htmlspecialchars($t['assigned_user']) ?></td>
+                        <td>
+                            <div class="date-info">
+                                <span class="date-main">
+                                    <?= $hasNotes ? formatTaskDate($t['updated_at']) : 'For Submission' ?>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="date-info">
+                                <span class="date-main"><?= formatTaskDate($t['assigned_at']) ?></span>
+                            </div>
+                        </td>
+                        <td>
+                            <a class="action-btn" href="?action=edit&id=<?= intval($t['id']) ?>" title="Edit Task">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                            <a class="action-btn" href="?action=complete&id=<?= intval($t['id']) ?>" onclick="return confirm('Mark complete?');" title="Mark Complete">
+                                <i class="fa fa-check"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+
     <?php if ($action === 'edit' && $task_id):
         $res = $conn->query('SELECT * FROM tasks WHERE id=' . $task_id);
         $edit = $res->fetch_assoc();
     ?>
-    <form method="post" action="?action=edit&id=<?php echo $task_id; ?>" style="margin-top:2em;">
-        <?php echo csrf_input(); ?>
-        <h3>Edit Task</h3>
-        <input type="text" name="name" value="<?php echo htmlspecialchars($edit['name']); ?>" required>
-        <input type="text" name="link" value="<?php echo htmlspecialchars($edit['link']); ?>">
-        <select name="priority">
-            <option value="LOW" <?php if ($edit['priority']==='LOW') echo 'selected'; ?>>Low</option>
-            <option value="MID" <?php if ($edit['priority']==='MID') echo 'selected'; ?>>Mid</option>
-            <option value="HIGH" <?php if ($edit['priority']==='HIGH') echo 'selected'; ?>>High</option>
-            <option value="PRIO" <?php if ($edit['priority']==='PRIO') echo 'selected'; ?>>Prio</option>
-            <option value="PEND" <?php if ($edit['priority']==='PEND') echo 'selected'; ?>>Pending</option>
-            <option value="DONE" <?php if ($edit['priority']==='DONE') echo 'selected'; ?>>Done</option>
-        </select>
-        <select name="assigned_to">
-            <option value="0">Select User</option>
-            <?php foreach ($user_list as $id => $name): ?>
-                <option value="<?php echo $id; ?>" <?php if ($edit['assigned_to']==$id) echo 'selected'; ?>><?php echo htmlspecialchars($name); ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit"><i class="fa fa-save" style="color:#008080"></i> Save</button>
-    </form>
+    <!-- Edit Task Section -->
+    <div class="task-table-container" style="padding: var(--space-md); margin-top: var(--space-lg);">
+        <form method="post" action="?action=edit&id=<?= $task_id; ?>">
+            <?= csrf_input(); ?>
+            <h3 class="mb-2">Edit Task</h3>
+            <div class="form-group">
+                <input class="form-control" type="text" name="name" value="<?= htmlspecialchars($edit['name']); ?>" required>
+            </div>
+            <div class="form-group">
+                <input class="form-control" type="text" name="link" value="<?= htmlspecialchars($edit['link']); ?>">
+            </div>
+            <div class="form-group">
+                <select class="form-control" name="priority">
+                    <option value="LOW" <?php if ($edit['priority']==='LOW') echo 'selected'; ?>>Low</option>
+                    <option value="MID" <?php if ($edit['priority']==='MID') echo 'selected'; ?>>Mid</option>
+                    <option value="HIGH" <?php if ($edit['priority']==='HIGH') echo 'selected'; ?>>High</option>
+                    <option value="PRIO" <?php if ($edit['priority']==='PRIO') echo 'selected'; ?>>Prio</option>
+                    <option value="PEND" <?php if ($edit['priority']==='PEND') echo 'selected'; ?>>Pending</option>
+                    <option value="DONE" <?php if ($edit['priority']==='DONE') echo 'selected'; ?>>Done</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="form-control" name="assigned_to" required>
+                    <option value="0">Select User</option>
+                    <?php foreach ($user_list as $id => $name): ?>
+                        <option value="<?= $id; ?>" <?php if ($edit['assigned_to']==$id) echo 'selected'; ?>><?= htmlspecialchars($name); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            </div>
+        </form>
+    </div>
     <?php endif; ?>
 </div>
+
+<!-- Notes Modal - for viewing and adding task notes -->
+<div id="notesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-regular fa-file-lines" style="color:#008080"></i> <span id="modalTaskName">Task Notes</span></h3>
+        </div>
+        <div class="modal-body">
+            <div class="notes-container" id="notesContent"></div>
+            <form id="noteForm" method="post">
+                <input type="hidden" name="task_id" id="noteTaskId">
+                <div class="form-group">
+                    <textarea name="note" id="noteText" class="form-control" placeholder="Add a new note..." required></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Note</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeNotes()">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
+<!-- Page-Specific JavaScript (loaded after global and component JS) -->
+<script src="js/index.js"></script>
+
 <?php include 'foot.php'; ?>
