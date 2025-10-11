@@ -256,38 +256,7 @@ if ($res === false) {
     </div>
 
     <!-- Tasks Table -->
-    <div class="task-table-container stack-gap-10">
-        <!-- Filters -->
-        <form id="filterForm" method="get" class="filters-bar">
-            <div class="form-group">
-                <label for="filterPriority" class="sr-only">Priority</label>
-                <select class="form-control" name="f_priority" id="filterPriority">
-                    <option value="" <?= !$usePriorityFilter ? 'selected' : '' ?>>All Priorities</option>
-                    <option value="LOW" <?= $filterPriority==='LOW' ? 'selected' : '' ?>>Low</option>
-                    <option value="MID" <?= $filterPriority==='MID' ? 'selected' : '' ?>>Mid</option>
-                    <option value="HIGH" <?= $filterPriority==='HIGH' ? 'selected' : '' ?>>High</option>
-                    <option value="PRIO" <?= $filterPriority==='PRIO' ? 'selected' : '' ?>>Prio</option>
-                    <option value="PEND" <?= $filterPriority==='PEND' ? 'selected' : '' ?>>Pending</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="filterAssignedTo" class="sr-only">Assignee</label>
-                <select class="form-control" name="f_assigned_to" id="filterAssignedTo">
-                    <option value="0" <?= !$useAssigneeFilter ? 'selected' : '' ?>>All Assignees</option>
-                    <?php foreach ($user_list as $id => $name): ?>
-                        <option value="<?= $id ?>" <?= $filterAssignedTo===$id ? 'selected' : '' ?>><?= htmlspecialchars($name) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="form-group search-input">
-                <label for="filterQuery" class="sr-only">Search</label>
-                <input type="text" class="form-control" id="filterQuery" name="f_q" placeholder="Search by task name or link" value="<?= htmlspecialchars($filterQuery) ?>" />
-            </div>
-            <div class="btn-group">
-                <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
-                <a class="btn btn-secondary" href="taskmgt.php?f_reset=1"><i class="fa fa-undo"></i> Reset</a>
-            </div>
-        </form>
+    <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>

@@ -43,7 +43,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
 <link rel="stylesheet" href="css/done.css?v=1">
 
 <div class="main-container">
-    <div class="task-table-container stack-gap-10">
+    <div class="task-table-container stack-gap-md">
         <!-- Filters -->
         <div class="filter-container">
         <form method="get" class="filters-bar">
@@ -128,7 +128,7 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
             </table>
         <?php endif; ?>
     </div>
-    <div class="task-table-container stack-gap-10">
+    <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>

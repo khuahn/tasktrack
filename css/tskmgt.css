@@ -15,7 +15,7 @@
     box-shadow: var(--shadow-sm); 
     overflow: hidden; 
 }
-.stack-gap-10 { margin-bottom: 10px; }
+.stack-gap-md { margin-bottom: var(--space-md); }
 
 /* ===== TABLE STRUCTURE STYLES ===== */
 .task-table { 
