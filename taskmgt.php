@@ -21,10 +21,21 @@ if ($role === 'teamlead') {
 $action = $_GET['action'] ?? '';
 $task_id = intval($_GET['id'] ?? 0);
 
-// Filters (GET)
-$filterPriority = $_GET['f_priority'] ?? '';
-$filterAssignedTo = intval($_GET['f_assigned_to'] ?? 0);
-$filterQuery = trim($_GET['f_q'] ?? '');
+// Filters (GET + session persistence)
+if (!isset($_SESSION)) { session_start(); }
+// Reset
+if (isset($_GET['f_reset']) && $_GET['f_reset'] === '1') {
+    unset($_SESSION['tmgt_f_priority'], $_SESSION['tmgt_f_assigned_to'], $_SESSION['tmgt_f_q']);
+}
+
+$filterPriority = $_GET['f_priority'] ?? ($_SESSION['tmgt_f_priority'] ?? '');
+$filterAssignedTo = intval($_GET['f_assigned_to'] ?? ($_SESSION['tmgt_f_assigned_to'] ?? 0));
+$filterQuery = trim($_GET['f_q'] ?? ($_SESSION['tmgt_f_q'] ?? ''));
+
+// Persist back to session for next visit
+$_SESSION['tmgt_f_priority'] = $filterPriority;
+$_SESSION['tmgt_f_assigned_to'] = $filterAssignedTo;
+$_SESSION['tmgt_f_q'] = $filterQuery;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
@@ -253,7 +264,7 @@ $stmt->close();
             </div>
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
-                <a class="btn btn-secondary" href="taskmgt.php"><i class="fa fa-undo"></i> Reset</a>
+                <a class="btn btn-secondary" href="taskmgt.php?f_reset=1"><i class="fa fa-undo"></i> Reset</a>
             </div>
         </form>
         <?php if (empty($tasks)): ?>
