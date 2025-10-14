@@ -1,6 +1,6 @@
 <?php
 // right-nav.php - Right-side navigation panel component
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
+if (!isset($_SESSION) || !isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     return;
 }
 
@@ -84,11 +84,15 @@ $username = $_SESSION['username'] ?? 'User';
                         <option value="">All</option>
                         <?php
                         // Get users for assignee dropdown
-                        $users_res = $conn->query('SELECT id, username FROM users WHERE frozen = 0 ORDER BY username');
-                        while ($user_row = $users_res->fetch_assoc()):
+                        if (isset($conn)) {
+                            $users_res = $conn->query('SELECT id, username FROM users WHERE frozen = 0 ORDER BY username');
+                            while ($user_row = $users_res->fetch_assoc()):
                         ?>
                             <option value="<?= $user_row['id'] ?>"><?= htmlspecialchars($user_row['username']) ?></option>
-                        <?php endwhile; ?>
+                        <?php 
+                            endwhile; 
+                        }
+                        ?>
                     </select>
                 </div>
                 <?php endif; ?>
