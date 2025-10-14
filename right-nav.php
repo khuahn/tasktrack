@@ -1,11 +1,16 @@
 <?php
 // right-nav.php - Right-side navigation panel component
-if (!isset($_SESSION) || !isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
+// Check if session is started and user is logged in
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    return;
+}
+
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
     return;
 }
 
 $user_role = $_SESSION['role'];
-$username = $_SESSION['username'] ?? 'User';
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
 ?>
 
 <!-- Right-side Navigation Panel -->
@@ -83,14 +88,14 @@ $username = $_SESSION['username'] ?? 'User';
                     <select class="form-control" id="search_assignee" name="assignee">
                         <option value="">All</option>
                         <?php
-                        // Get users for assignee dropdown
-                        if (isset($conn)) {
+                        // Get users for assignee dropdown - safer approach
+                        if (isset($conn) && $conn) {
                             $users_res = $conn->query('SELECT id, username FROM users WHERE frozen = 0 ORDER BY username');
-                            while ($user_row = $users_res->fetch_assoc()):
-                        ?>
-                            <option value="<?= $user_row['id'] ?>"><?= htmlspecialchars($user_row['username']) ?></option>
-                        <?php 
-                            endwhile; 
+                            if ($users_res) {
+                                while ($user_row = $users_res->fetch_assoc()) {
+                                    echo '<option value="' . htmlspecialchars($user_row['id']) . '">' . htmlspecialchars($user_row['username']) . '</option>';
+                                }
+                            }
                         }
                         ?>
                     </select>
@@ -168,7 +173,7 @@ function applySearchFilters() {
     
     // Redirect to current page with new parameters
     const currentUrl = window.location.pathname;
-    const newUrl = params.toString() ? `${currentUrl}?${params.toString()}` : currentUrl;
+    const newUrl = params.toString() ? currentUrl + '?' + params.toString() : currentUrl;
     window.location.href = newUrl;
 }
 
