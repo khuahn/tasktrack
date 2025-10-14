@@ -34,13 +34,36 @@ if ($q !== '') {
 $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
+
+// Get user info for title
+$user_stmt = $conn->prepare('SELECT username FROM users WHERE id = ?');
+$user_stmt->bind_param('i', $user_id);
+$user_stmt->execute();
+$user_res = $user_stmt->get_result();
+$user_info = $user_res->fetch_assoc();
+$username = $user_info['username'];
+
+// Get completed tasks count
+$count_stmt = $conn->prepare('SELECT COUNT(*) as total FROM tasks WHERE assigned_to = ? AND priority = "DONE"');
+$count_stmt->bind_param('i', $user_id);
+$count_stmt->execute();
+$count_res = $count_stmt->get_result();
+$total_completed = $count_res->fetch_assoc()['total'];
 ?>
 <!-- Page-Specific CSS -->
 <link rel="stylesheet" href="css/done.css?v=1">
 
-<div class="main-container">
-    
-    <div class="task-table-container stack-gap-md">
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Content Area -->
+    <div class="content-left">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2 class="page-title"><?= htmlspecialchars($username) ?> Completed</h2>
+            <span class="page-counter"><?= $total_completed ?> completed tasks</span>
+        </div>
+        
+        <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>
@@ -92,6 +115,12 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
                 </tbody>
             </table>
         <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Right Navigation Panel -->
+    <div class="content-right">
+        <?php include 'right-nav.php'; ?>
     </div>
 </div>
 

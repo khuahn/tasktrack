@@ -50,11 +50,34 @@ if ($filterUser > 0 && $q !== '') {
 $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
+
+// Get team name for title
+$team_stmt = $conn->prepare('SELECT t.name FROM teams t JOIN users u ON t.id = u.team_id WHERE u.id = ?');
+$team_stmt->bind_param('i', $user_id);
+$team_stmt->execute();
+$team_res = $team_stmt->get_result();
+$team_info = $team_res->fetch_assoc();
+$team_name = $team_info['name'] ?? 'Unknown Team';
+
+// Get completed tasks count for team
+$count_stmt = $conn->prepare('SELECT COUNT(*) as total FROM tasks t JOIN users u ON t.assigned_to = u.id WHERE t.priority = "DONE" AND u.team_id = ?');
+$count_stmt->bind_param('i', $team_id);
+$count_stmt->execute();
+$count_res = $count_stmt->get_result();
+$total_completed = $count_res->fetch_assoc()['total'];
 ?>
 <!-- Page-Specific CSS -->
 <link rel="stylesheet" href="css/done.css?v=1">
 
-<div class="main-container">
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Content Area -->
+    <div class="content-left">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2 class="page-title"><?= htmlspecialchars($team_name) ?> Completed</h2>
+            <span class="page-counter"><?= $total_completed ?> completed tasks</span>
+        </div>
     
     <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
@@ -115,6 +138,12 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
                 </tbody>
             </table>
         <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Right Navigation Panel -->
+    <div class="content-right">
+        <?php include 'right-nav.php'; ?>
     </div>
 </div>
 

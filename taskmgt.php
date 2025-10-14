@@ -9,13 +9,24 @@ $user_id = $_SESSION['user_id'];
 $role = get_user_role();
 $message = '';
 
-// Get team id for teamlead
+// Get team id and name for teamlead
 $team_id = 0;
+$team_name = '';
 if ($role === 'teamlead') {
-    $res = $conn->query('SELECT team_id FROM users WHERE id=' . $user_id);
+    $res = $conn->query('SELECT u.team_id, t.name as team_name FROM users u LEFT JOIN teams t ON u.team_id = t.id WHERE u.id=' . $user_id);
     $row = $res->fetch_assoc();
     $team_id = intval($row['team_id']);
+    $team_name = $row['team_name'] ?? 'Unknown Team';
 }
+
+// Get total active tasks count
+$count_conditions = ["priority <> 'DONE'"];
+if ($role !== 'admin') {
+    $count_conditions[] = 'assigned_to IN (SELECT id FROM users WHERE team_id = ' . intval($team_id) . ')';
+}
+$count_sql = 'SELECT COUNT(*) as total FROM tasks WHERE ' . implode(' AND ', $count_conditions);
+$count_res = $conn->query($count_sql);
+$total_active_tasks = $count_res->fetch_assoc()['total'];
 
 // Handle actions: add, edit, complete, restore
 $action = $_GET['action'] ?? '';
@@ -27,9 +38,13 @@ if (isset($_GET['f_reset']) && $_GET['f_reset'] === '1') {
     unset($_SESSION['tmgt_f_priority'], $_SESSION['tmgt_f_assigned_to'], $_SESSION['tmgt_f_q']);
 }
 
-$filterPriority = $_GET['f_priority'] ?? ($_SESSION['tmgt_f_priority'] ?? '');
-$filterAssignedTo = intval($_GET['f_assigned_to'] ?? ($_SESSION['tmgt_f_assigned_to'] ?? 0));
-$filterQuery = trim($_GET['f_q'] ?? ($_SESSION['tmgt_f_q'] ?? ''));
+$filterPriority = $_GET['priority'] ?? ($_SESSION['tmgt_f_priority'] ?? '');
+$filterAssignedTo = intval($_GET['assignee'] ?? ($_SESSION['tmgt_f_assigned_to'] ?? 0));
+$filterQuery = trim($_GET['search'] ?? ($_SESSION['tmgt_f_q'] ?? ''));
+$assigned_start = $_GET['assigned_start'] ?? '';
+$assigned_end = $_GET['assigned_end'] ?? '';
+$completed_start = $_GET['completed_start'] ?? '';
+$completed_end = $_GET['completed_end'] ?? '';
 
 // Persist back to session for next visit
 $_SESSION['tmgt_f_priority'] = $filterPriority;
@@ -180,7 +195,23 @@ if ($useAssigneeFilter) {
 }
 if ($useQueryFilter) {
     $like = '%' . $conn->real_escape_string($filterQuery) . '%';
-    $conditions[] = "(t.name LIKE '$like' OR t.link LIKE '$like')";
+    $conditions[] = "(t.name LIKE '$like' OR t.link LIKE '$like' OR EXISTS (SELECT 1 FROM notes n WHERE n.task_id = t.id AND n.note LIKE '$like'))";
+}
+
+if ($assigned_start) {
+    $conditions[] = "DATE(t.assigned_at) >= '" . $conn->real_escape_string($assigned_start) . "'";
+}
+
+if ($assigned_end) {
+    $conditions[] = "DATE(t.assigned_at) <= '" . $conn->real_escape_string($assigned_end) . "'";
+}
+
+if ($completed_start) {
+    $conditions[] = "DATE(t.completed_at) >= '" . $conn->real_escape_string($completed_start) . "'";
+}
+
+if ($completed_end) {
+    $conditions[] = "DATE(t.completed_at) <= '" . $conn->real_escape_string($completed_end) . "'";
 }
 
 $whereSql = implode(' AND ', $conditions);
@@ -210,13 +241,26 @@ if ($res === false) {
 <!-- Page-Specific CSS (loaded after global and component CSS) -->
 <link rel="stylesheet" href="css/tskmgt.css?v=1">
 
-<div class="main-container">
-    <?php if ($message): ?>
-        <div class="text-success" style="margin: var(--space-md);"><?= htmlspecialchars($message) ?></div>
-    <?php endif; ?>
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Content Area -->
+    <div class="content-left">
+        <!-- Page Header -->
+        <div class="page-header">
+            <?php if ($role === 'admin'): ?>
+                <h2 class="page-title">Total Active Tasks</h2>
+            <?php else: ?>
+                <h2 class="page-title"><?= htmlspecialchars($team_name) ?> Tasks</h2>
+            <?php endif; ?>
+            <span class="page-counter"><?= $total_active_tasks ?> active tasks</span>
+        </div>
+        
+        <?php if ($message): ?>
+            <div class="text-success" style="margin: var(--space-md);"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
 
-    <!-- Tasks Table -->
-    <div class="task-table-container stack-gap-md">
+        <!-- Tasks Table -->
+        <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
                 <i class="fa fa-check-circle"></i>
@@ -287,6 +331,12 @@ if ($res === false) {
                 </tbody>
             </table>
         <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Right Navigation Panel -->
+    <div class="content-right">
+        <?php include 'right-nav.php'; ?>
     </div>
 </div>
 

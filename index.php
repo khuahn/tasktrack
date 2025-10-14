@@ -9,8 +9,45 @@ include 'db.php';
 $user_id = $_SESSION['user_id'];
 $role = get_user_role();
 
+// Handle search filters
+$search_priority = $_GET['priority'] ?? '';
+$search_text = trim($_GET['search'] ?? '');
+$assigned_start = $_GET['assigned_start'] ?? '';
+$assigned_end = $_GET['assigned_end'] ?? '';
+$completed_start = $_GET['completed_start'] ?? '';
+$completed_end = $_GET['completed_end'] ?? '';
+
+// Build search conditions
+$conditions = ["t.assigned_to = " . intval($user_id), "t.priority <> 'DONE'"];
+
+if ($search_priority && in_array($search_priority, ['LOW','MID','HIGH','PRIO','PEND','DONE'])) {
+    $conditions[] = "t.priority = '" . $conn->real_escape_string($search_priority) . "'";
+}
+
+if ($search_text) {
+    $like = '%' . $conn->real_escape_string($search_text) . '%';
+    $conditions[] = "(t.name LIKE '$like' OR t.link LIKE '$like' OR EXISTS (SELECT 1 FROM notes n WHERE n.task_id = t.id AND n.note LIKE '$like'))";
+}
+
+if ($assigned_start) {
+    $conditions[] = "DATE(t.assigned_at) >= '" . $conn->real_escape_string($assigned_start) . "'";
+}
+
+if ($assigned_end) {
+    $conditions[] = "DATE(t.assigned_at) <= '" . $conn->real_escape_string($assigned_end) . "'";
+}
+
+if ($completed_start) {
+    $conditions[] = "DATE(t.completed_at) >= '" . $conn->real_escape_string($completed_start) . "'";
+}
+
+if ($completed_end) {
+    $conditions[] = "DATE(t.completed_at) <= '" . $conn->real_escape_string($completed_end) . "'";
+}
+
 // Hosting-safe query (avoid get_result) with equivalent sorting
 $uid = intval($user_id);
+$whereSql = implode(' AND ', $conditions);
 $sql = "
     SELECT t.*, COALESCE(nc.note_count, 0) AS note_count
     FROM tasks t
@@ -19,7 +56,7 @@ $sql = "
         FROM notes
         GROUP BY task_id
     ) nc ON nc.task_id = t.id
-    WHERE t.assigned_to = $uid AND t.priority <> 'DONE'
+    WHERE $whereSql
     ORDER BY (COALESCE(nc.note_count, 0) = 0) DESC,
       CASE WHEN COALESCE(nc.note_count, 0) = 0 THEN t.assigned_at ELSE t.updated_at END ASC
 ";
@@ -64,9 +101,18 @@ function formatTaskDate($dateString) {
 <!-- Page-Specific CSS (loaded after global and component CSS) -->
 <link rel="stylesheet" href="css/index.css?v=2">
 
-<div class="main-container">
-    <!-- Task Table Container -->
-    <div class="task-table-container">
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Content Area -->
+    <div class="content-left">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2 class="page-title">User Tasks</h2>
+            <span class="page-counter"><?= count($tasks) ?> active tasks</span>
+        </div>
+        
+        <!-- Task Table Container -->
+        <div class="task-table-container">
         <?php if (empty($tasks)): ?>
             <!-- Empty state when no tasks are available -->
             <div class="empty-state">
@@ -137,7 +183,12 @@ function formatTaskDate($dateString) {
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Right Navigation Panel -->
+    <div class="content-right">
+        <?php include 'right-nav.php'; ?>
     </div>
 </div>
 

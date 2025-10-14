@@ -38,11 +38,25 @@ if ($useP && $q !== '') {
 $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
+
+// Get total completed tasks count
+$count_stmt = $conn->prepare('SELECT COUNT(*) as total FROM tasks WHERE priority = "DONE"');
+$count_stmt->execute();
+$count_res = $count_stmt->get_result();
+$total_completed = $count_res->fetch_assoc()['total'];
 ?>
 <!-- Page-Specific CSS -->
 <link rel="stylesheet" href="css/done.css?v=1">
 
-<div class="main-container">
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Content Area -->
+    <div class="content-left">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2 class="page-title">Total Completed Tasks</h2>
+            <span class="page-counter"><?= $total_completed ?> completed tasks</span>
+        </div>
     <div class="task-table-container stack-gap-md">
         <?php if (empty($tasks)): ?>
             <div class="empty-state">
@@ -102,6 +116,12 @@ $tasks = $res->fetch_all(MYSQLI_ASSOC);
                 </tbody>
             </table>
         <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Right Navigation Panel -->
+    <div class="content-right">
+        <?php include 'right-nav.php'; ?>
     </div>
 </div>
 
