@@ -25,25 +25,19 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     $username = $_SESSION['username'] ?? 'User';
     ?>
     
-    <!-- Modern Navigation Bar -->
+    <!-- Modern Navigation Bar (no slide-out panel) -->
     <nav class="navbar">
-        <!-- Welcome Section -->
         <div class="nav-welcome">
             <i class="fa fa-user-circle"></i> Welcome, <strong><?php echo htmlspecialchars($username); ?></strong>
         </div>
-        
-        <!-- Title Section -->
         <div class="nav-title">
             <a href="index.php">
                 <i class="fa fa-tasks"></i> Task Tracker
             </a>
         </div>
-        
-        </nav>
+    </nav>
     
     <!-- Global JavaScript -->
     <script src="js/main.js"></script>
-    
-
     <?php
 }

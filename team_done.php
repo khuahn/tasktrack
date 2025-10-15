@@ -20,9 +20,15 @@ $res = $stmt->get_result();
 $row = $res->fetch_assoc();
 $team_id = intval($row['team_id']);
 
-// Filters
-$q = trim($_GET['f_q'] ?? '');
-$filterUser = intval($_GET['f_user'] ?? 0);
+// Standard filters
+$filterPriority = $_GET['priority'] ?? '';
+$filterUser = intval($_GET['assignee'] ?? 0);
+$q = trim($_GET['search'] ?? '');
+$assigned_start = $_GET['assigned_start'] ?? '';
+$assigned_end = $_GET['assigned_end'] ?? '';
+$completed_start = $_GET['completed_start'] ?? '';
+$completed_end = $_GET['completed_end'] ?? '';
+$useP = in_array($filterPriority, ['LOW','MID','HIGH','PRIO','PEND','DONE'], true);
 
 // List completed tasks for team with optional filters and last restore info
 $sql = 'SELECT t.*, u.username,
@@ -31,22 +37,26 @@ $sql = 'SELECT t.*, u.username,
          WHERE e.task_id=t.id AND e.event_type="RESTORE" ORDER BY e.created_at DESC LIMIT 1) AS last_restore
         FROM tasks t JOIN users u ON t.assigned_to=u.id 
         WHERE t.priority="DONE" AND u.team_id = ?';
+if ($useP) { $sql .= ' AND t.priority = ?'; }
 if ($filterUser > 0) { $sql .= ' AND t.assigned_to = ?'; }
-if ($q !== '') { $sql .= ' AND (t.name LIKE ? OR t.link LIKE ?)'; }
+if ($q !== '') { $sql .= ' AND (t.name LIKE ? OR t.link LIKE ? OR EXISTS (SELECT 1 FROM notes n WHERE n.task_id=t.id AND n.note LIKE ?))'; }
+if ($assigned_start) { $sql .= ' AND DATE(t.assigned_at) >= ?'; }
+if ($assigned_end)   { $sql .= ' AND DATE(t.assigned_at) <= ?'; }
+if ($completed_start){ $sql .= ' AND DATE(t.completed_at) >= ?'; }
+if ($completed_end)  { $sql .= ' AND DATE(t.completed_at) <= ?'; }
 $sql .= ' ORDER BY t.completed_at DESC';
 
 $stmt = $conn->prepare($sql);
-if ($filterUser > 0 && $q !== '') {
-    $like = "%$q%";
-    $stmt->bind_param('iiss', $team_id, $filterUser, $like, $like);
-} elseif ($filterUser > 0) {
-    $stmt->bind_param('ii', $team_id, $filterUser);
-} elseif ($q !== '') {
-    $like = "%$q%";
-    $stmt->bind_param('iss', $team_id, $like, $like);
-} else {
-    $stmt->bind_param('i', $team_id);
-}
+$bindTypes = 'i';
+$bindValues = [$team_id];
+if ($useP) { $bindTypes .= 's'; $bindValues[] = $filterPriority; }
+if ($filterUser > 0) { $bindTypes .= 'i'; $bindValues[] = $filterUser; }
+if ($q !== '') { $bindTypes .= 'sss'; $like = "%$q%"; $bindValues[] = $like; $bindValues[] = $like; $bindValues[] = $like; }
+if ($assigned_start) { $bindTypes .= 's'; $bindValues[] = $assigned_start; }
+if ($assigned_end)   { $bindTypes .= 's'; $bindValues[] = $assigned_end; }
+if ($completed_start){ $bindTypes .= 's'; $bindValues[] = $completed_start; }
+if ($completed_end)  { $bindTypes .= 's'; $bindValues[] = $completed_end; }
+$stmt->bind_param($bindTypes, ...$bindValues);
 $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);

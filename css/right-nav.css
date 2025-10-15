@@ -45,6 +45,9 @@
     text-align: center;
 }
 
+/* Ensure icon visibility on colored buttons */
+.nav-button i { color: var(--white); opacity: 0.95; }
+
 /* Button-specific colors */
 .nav-button.manage-users {
     background: rgba(40, 167, 69, 0.2);
@@ -142,16 +145,24 @@
 }
 
 .page-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem; /* Slightly smaller than site title */
     font-weight: 600;
-    color: var(--gray-700);
+    color: var(--gray-700); /* greyish */
     margin: 0;
 }
 
 .page-counter {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--gray-600);
     font-weight: 500;
+}
+
+/* Compact form controls inside right-nav modals */
+.right-nav-panel .form-control,
+#searchModal .form-control {
+    height: auto;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */

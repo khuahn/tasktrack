@@ -9,8 +9,14 @@ include 'head.php';
 include 'db.php';
 
 $user_id = $_SESSION['user_id'];
-// Filters
-$q = trim($_GET['f_q'] ?? '');
+// Standard filters
+$filterPriority = $_GET['priority'] ?? '';
+$q = trim($_GET['search'] ?? '');
+$assigned_start = $_GET['assigned_start'] ?? '';
+$assigned_end = $_GET['assigned_end'] ?? '';
+$completed_start = $_GET['completed_start'] ?? '';
+$completed_end = $_GET['completed_end'] ?? '';
+$useP = in_array($filterPriority, ['LOW','MID','HIGH','PRIO','PEND','DONE'], true);
 
 // List completed tasks with optional search and last restore info
 $sql = 'SELECT t.*, 
@@ -21,16 +27,24 @@ $sql = 'SELECT t.*,
          ORDER BY e.created_at DESC LIMIT 1) AS last_restore
         FROM tasks t 
         WHERE t.assigned_to = ? AND t.priority = "DONE"';
-if ($q !== '') { $sql .= ' AND (t.name LIKE ? OR t.link LIKE ?)'; }
+if ($useP) { $sql .= ' AND t.priority = ?'; }
+if ($q !== '') { $sql .= ' AND (t.name LIKE ? OR t.link LIKE ? OR EXISTS (SELECT 1 FROM notes n WHERE n.task_id=t.id AND n.note LIKE ?))'; }
+if ($assigned_start) { $sql .= ' AND DATE(t.assigned_at) >= ?'; }
+if ($assigned_end)   { $sql .= ' AND DATE(t.assigned_at) <= ?'; }
+if ($completed_start){ $sql .= ' AND DATE(t.completed_at) >= ?'; }
+if ($completed_end)  { $sql .= ' AND DATE(t.completed_at) <= ?'; }
 $sql .= ' ORDER BY t.completed_at DESC';
 
 $stmt = $conn->prepare($sql);
-if ($q !== '') {
-    $like = "%$q%";
-    $stmt->bind_param('iss', $user_id, $like, $like);
-} else {
-    $stmt->bind_param('i', $user_id);
-}
+$bindTypes = 'i';
+$bindValues = [$user_id];
+if ($useP) { $bindTypes .= 's'; $bindValues[] = $filterPriority; }
+if ($q !== '') { $bindTypes .= 'sss'; $like = "%$q%"; $bindValues[] = $like; $bindValues[] = $like; $bindValues[] = $like; }
+if ($assigned_start) { $bindTypes .= 's'; $bindValues[] = $assigned_start; }
+if ($assigned_end)   { $bindTypes .= 's'; $bindValues[] = $assigned_end; }
+if ($completed_start){ $bindTypes .= 's'; $bindValues[] = $completed_start; }
+if ($completed_end)  { $bindTypes .= 's'; $bindValues[] = $completed_end; }
+$stmt->bind_param($bindTypes, ...$bindValues);
 $stmt->execute();
 $res = $stmt->get_result();
 $tasks = $res->fetch_all(MYSQLI_ASSOC);
