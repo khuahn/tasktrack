@@ -20,6 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         $role = $_POST['role'] ?? 'member';
+        // Restrict creation of admin users via UI
+        if (!in_array($role, ['member','teamlead'], true)) {
+            $role = 'member';
+        }
         $team_id = intval($_POST['team_id'] ?? 0);
         if ($username && $password && $role) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -42,6 +46,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $_POST['role'] ?? '';
         $team_id = intval($_POST['team_id'] ?? 0);
         $frozen = isset($_POST['frozen']) ? 1 : 0;
+
+        // Fetch current role to enforce no promotion to admin and prevent changing admin role here
+        $currStmt = $conn->prepare('SELECT role FROM users WHERE id=?');
+        $currStmt->bind_param('i', $user_id);
+        $currStmt->execute();
+        $currRes = $currStmt->get_result();
+        $curr = $currRes ? $currRes->fetch_assoc() : null;
+        $currentRole = $curr['role'] ?? 'member';
+        $currStmt->close();
+
+        if ($currentRole === 'admin') {
+            // Do not allow changing admin role here
+            $role = 'admin';
+        } else {
+            // Sanitize role; disallow promoting to admin
+            if (!in_array($role, ['member','teamlead'], true)) {
+                $role = $currentRole; // keep as-is if invalid or admin attempted
+            }
+        }
 
         // Update core fields
         $stmt = $conn->prepare('UPDATE users SET username=?, role=?, team_id=?, frozen=? WHERE id=?');
@@ -223,11 +246,18 @@ $users = $res->fetch_all(MYSQLI_ASSOC);
                     <div class="form-row">
                         <div class="form-group">
                             <label for="edit_role">Role</label>
-                            <select name="role" id="edit_role" class="form-control" required>
-                                <option value="member" <?= $edit['role'] === 'member' ? 'selected' : '' ?>>Member</option>
-                                <option value="teamlead" <?= $edit['role'] === 'teamlead' ? 'selected' : '' ?>>Team Lead</option>
-                                <option value="admin" <?= $edit['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-                            </select>
+                            <?php if ($edit['role'] === 'admin'): ?>
+                                <select id="edit_role" class="form-control" disabled>
+                                    <option selected>Admin</option>
+                                </select>
+                                <input type="hidden" name="role" value="admin">
+                                <small class="text-muted">Admin role cannot be changed here.</small>
+                            <?php else: ?>
+                                <select name="role" id="edit_role" class="form-control" required>
+                                    <option value="member" <?= $edit['role'] === 'member' ? 'selected' : '' ?>>Member</option>
+                                    <option value="teamlead" <?= $edit['role'] === 'teamlead' ? 'selected' : '' ?>>Team Lead</option>
+                                </select>
+                            <?php endif; ?>
                         </div>
                         <div class="form-group">
                             <label for="edit_team_id">Team</label>
